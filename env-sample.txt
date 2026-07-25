@@ -1,0 +1,38 @@
+# =============================================================================
+# Valaiyagam environment sample
+# Copy values into:
+#   admin/backend/.env
+#   admin/frontend/.env
+# Never commit real secrets.
+# =============================================================================
+
+# ---------- Shared / PostgreSQL ----------
+APP_ENV=development
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=valaiyagam
+POSTGRES_USER=valaiyagam
+POSTGRES_PASSWORD=replace-with-a-strong-password
+
+# Optional full SQLAlchemy URL (overrides POSTGRES_* composition)
+# DATABASE_URL=postgresql+psycopg://valaiyagam:replace-with-a-strong-password@localhost:5432/valaiyagam
+
+# ---------- Admin backend (admin/backend/.env) ----------
+SECRET_KEY=replace-with-a-long-random-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+REFRESH_TOKEN_EXPIRE_DAYS=30
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+
+INITIAL_ADMIN_EMAIL=admin@example.com
+INITIAL_ADMIN_PASSWORD=ChangeMe123!
+INITIAL_ADMIN_NAME=System Admin
+
+PAYMENT_PROVIDER=cod
+PAYMENT_SECRET=
+STORAGE_PROVIDER=local
+
+# ---------- Admin frontend (admin/frontend/.env) ----------
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_ORIGIN=http://localhost:8000
+# Use "force" for mock UI data, "off" to hit the live API
+NEXT_PUBLIC_DEMO_MOCK=off

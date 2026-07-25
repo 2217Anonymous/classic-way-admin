@@ -1,0 +1,51 @@
+import type { Coupon } from "@/lib/types";
+
+const now = "2026-07-20T10:00:00.000Z";
+
+export const mockCoupons: Coupon[] = [
+  {
+    id: 1,
+    code: "WELCOME10",
+    name: "Welcome 10% off",
+    discount_type: "percent",
+    discount_value: 10,
+    min_order_amount: 999,
+    max_uses: 1000,
+    used_count: 42,
+    starts_at: "2026-07-01T00:00:00.000Z",
+    ends_at: "2026-12-31T23:59:59.000Z",
+    is_active: true,
+    created_at: now,
+    updated_at: now,
+  },
+  {
+    id: 2,
+    code: "FLAT200",
+    name: "Flat ₹200 off",
+    discount_type: "fixed",
+    discount_value: 200,
+    min_order_amount: 1499,
+    max_uses: 500,
+    used_count: 18,
+    starts_at: "2026-07-10T00:00:00.000Z",
+    ends_at: null,
+    is_active: true,
+    created_at: now,
+    updated_at: now,
+  },
+  {
+    id: 3,
+    code: "SUMMER25",
+    name: "Summer sale 25%",
+    discount_type: "percent",
+    discount_value: 25,
+    min_order_amount: null,
+    max_uses: null,
+    used_count: 0,
+    starts_at: null,
+    ends_at: "2026-06-30T23:59:59.000Z",
+    is_active: false,
+    created_at: now,
+    updated_at: now,
+  },
+];
