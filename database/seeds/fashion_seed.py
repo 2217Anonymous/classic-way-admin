@@ -2,7 +2,7 @@
 
 Usage (from repo root, with DB env configured):
 
-  PYTHONPATH=admin/backend python database/seeds/fashion_seed.py
+  PYTHONPATH=backend python database/seeds/fashion_seed.py
 
 Idempotent: skips creating rows when slug/code already exists.
 """
@@ -14,9 +14,9 @@ from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ADMIN_BACKEND = ROOT / "admin" / "backend"
-if str(ADMIN_BACKEND) not in sys.path:
-    sys.path.insert(0, str(ADMIN_BACKEND))
+BACKEND = ROOT / "backend"
+if str(BACKEND) not in sys.path:
+    sys.path.insert(0, str(BACKEND))
 
 from sqlalchemy.orm import Session  # noqa: E402
 

@@ -29,17 +29,17 @@ Seed fashion catalog:
 ```bash
 docker compose exec admin-backend python /path/or/mount/seeds
 # or locally:
-cd admin/backend
+cd backend
 # set POSTGRES_* to compose values
-PYTHONPATH=. python ../../database/seeds/fashion_seed.py
+PYTHONPATH=. python ../database/seeds/fashion_seed.py
 ```
 
 ## Local without Docker
 
 1. Start PostgreSQL 16
-2. `cd admin/backend && pip install -r requirements.txt && alembic upgrade head && uvicorn app.main:app --reload --port 8000`
-3. `$env:PYTHONPATH="..\..\admin\backend"; cd shopping/backend; uvicorn main:app --reload --port 8001`
-4. `cd admin/frontend && npm i && npm run dev`
+2. `cd backend && pip install -r requirements.txt && alembic upgrade head && uvicorn app.main:app --reload --port 8000`
+3. `$env:PYTHONPATH="..\..\backend"; cd shopping/backend; uvicorn main:app --reload --port 8001`
+4. `cd frontend && npm i && npm run dev`
 5. `cd shopping/frontend && npm i && npm run dev`
 
 ## Health checks

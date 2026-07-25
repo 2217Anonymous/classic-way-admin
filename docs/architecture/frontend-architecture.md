@@ -4,7 +4,7 @@
 
 | App | Path | Port | Stack |
 |-----|------|------|-------|
-| Admin | `admin/frontend` | 3000 | Next.js 16, React 19, Redux Toolkit, Tailwind 4 |
+| Admin | `frontend` | 3000 | Next.js 16, React 19, Redux Toolkit, Tailwind 4 |
 | Shopping | `shopping/frontend` | 3001 | Next.js 16, React 19, Redux Toolkit, Tailwind 4, Swiper |
 
 ## Admin

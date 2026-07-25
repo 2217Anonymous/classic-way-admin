@@ -31,15 +31,15 @@ Deliver a production shopping site that is **fully driven by the admin portal**:
 ```text
 ┌──────────────────────┐     ┌──────────────────────────┐
 │ Admin Frontend       │     │ Shopping Frontend        │
-│ admin/frontend :3000 │     │ shopping/frontend :3001  │
+│ frontend :3000       │     │ shopping/frontend :3001  │
 │ Glass admin + tabs   │     │ BlueBerry fashion theme  │
 └──────────┬───────────┘     └────────────┬─────────────┘
            │ /api/v1 (staff JWT)          │ /api/v1 (customer JWT)
            ▼                              ▼
 ┌──────────────────────┐     ┌──────────────────────────┐
-│ Admin Backend :8000  │     │ Shopping Backend :8001   │
+│ Backend :8000        │     │ Shopping Backend :8001   │
 │ catalog, orders,     │     │ customers module         │
-│ inventory, payments… │     │ (reuses admin/backend)   │
+│ inventory, payments… │     │ (reuses backend)         │
 └──────────┬───────────┘     └────────────┬─────────────┘
            │                              │
            └────────────┬─────────────────┘
@@ -55,7 +55,7 @@ Deliver a production shopping site that is **fully driven by the admin portal**:
 - Route → Service → Repository → Model  
 - Pydantic request/response schemas  
 - JWT auth (staff vs customer scope)  
-- Alembic migrations in `admin/backend/alembic`  
+- Alembic migrations in `backend/alembic`  
 - Feature branches + Excel story IDs  
 
 ---

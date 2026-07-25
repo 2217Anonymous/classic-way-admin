@@ -7,8 +7,8 @@ The legacy `mysql/` bootstrap directory has been **removed**. Use:
 | Concern | Location |
 |---------|----------|
 | Extensions | `database/schema/init.sql` |
-| Table DDL | `admin/backend/alembic/versions/` |
-| Env sample | root `env-sample.txt` / `admin/backend/.env.example` |
+| Table DDL | `backend/alembic/versions/` |
+| Env sample | root `env-sample.txt` / `backend/.env.example` |
 
 ## What changed (summary)
 
@@ -27,7 +27,7 @@ The legacy `mysql/` bootstrap directory has been **removed**. Use:
 psql -U valaiyagam -d valaiyagam -f database/schema/init.sql
 
 # 3. Apply migrations
-cd admin/backend
+cd backend
 alembic upgrade head
 ```
 

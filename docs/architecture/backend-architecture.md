@@ -4,10 +4,10 @@
 
 | App | Path | Port | Role |
 |-----|------|------|------|
-| Admin API | `admin/backend` | 8000 | Staff JWT, catalog CRUD, inventory, orders ops, reports |
+| Admin API | `backend` | 8000 | Staff JWT, catalog CRUD, inventory, orders ops, reports |
 | Shopping API | `shopping/backend` | 8001 | Customer JWT, public catalog, cart, checkout |
 
-Shopping reuses `admin/backend` domain modules (`app.modules.*`) via `PYTHONPATH` / Docker COPY. Models and Alembic stay in one place.
+Shopping reuses `backend` domain modules (`app.modules.*`) via `PYTHONPATH` / Docker COPY. Models and Alembic stay in one place.
 
 ## Layering
 
@@ -18,7 +18,7 @@ API Router
       → PostgreSQL
 ```
 
-## Domains (`admin/backend/app/modules`)
+## Domains (`backend/app/modules`)
 
 | Module | Responsibility |
 |--------|----------------|

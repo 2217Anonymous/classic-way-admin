@@ -1,6 +1,6 @@
 # Database Schema Overview
 
-PostgreSQL 16. DDL is applied by Alembic (`admin/backend/alembic`).
+PostgreSQL 16. DDL is applied by Alembic (`backend/alembic`).
 
 ## Core tables
 

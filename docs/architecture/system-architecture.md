@@ -44,9 +44,9 @@ Valaiyagam/
 
 ## Design Principles
 
-1. **Reuse existing domain logic** — catalog, inventory, orders, payments, fulfillment modules from the original modular monolith remain the source of truth under `admin/backend`.
+1. **Reuse existing domain logic** — catalog, inventory, orders, payments, fulfillment modules from the original modular monolith remain the source of truth under `backend`.
 2. **Separate HTTP surfaces** — admin routes stay role-gated; shopping exposes public catalog and customer JWT APIs.
-3. **Shared database** — one PostgreSQL database; both backends use compatible SQLAlchemy models and Alembic migrations owned by `admin/backend` (mirrored/documented under `database/`).
+3. **Shared database** — one PostgreSQL database; both backends use compatible SQLAlchemy models and Alembic migrations owned by `backend` (mirrored/documented under `database/`).
 4. **No fake ecommerce core** — cart, checkout, orders, coupons, and inventory write through real DB transactions.
 5. **Provider abstraction** — payments use a provider interface (Razorpay demo + COD) so gateways can be swapped.
 
@@ -54,8 +54,8 @@ Valaiyagam/
 
 | Before | After |
 |--------|-------|
-| `frontend/` | `admin/frontend/` |
-| `backend/` | `admin/backend/` |
+| `admin/frontend/` | `frontend/` |
+| `admin/backend/` | `backend/` |
 | `shopping/` (BlueBerry UI) | `shopping/frontend/` |
 | _(none)_ | `shopping/backend/` |
 | MySQL 8.4 + PyMySQL | PostgreSQL 16 + psycopg |

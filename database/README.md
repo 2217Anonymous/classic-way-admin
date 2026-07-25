@@ -10,7 +10,7 @@ database/
 │   └── init.sql          # Extensions on first Postgres boot
 ├── seeds/
 │   └── fashion_seed.py   # Fashion / T-shirt sample catalog
-├── migrations/           # Notes — Alembic lives in admin/backend/alembic
+├── migrations/           # Notes — Alembic lives in backend/alembic
 └── README.md
 ```
 
@@ -38,21 +38,21 @@ DATABASE_URL   # optional full SQLAlchemy URL override
 3. Apply Alembic migrations (table DDL source of truth):
 
 ```bash
-cd admin/backend
+cd backend
 alembic upgrade head
 ```
 
 ## Seeds
 
 ```bash
-cd admin/backend
-python ../../database/seeds/fashion_seed.py
+cd backend
+python ../database/seeds/fashion_seed.py
 ```
 
 ## Schema ownership
 
 - **Extensions / timezone:** `database/schema/init.sql`
-- **Tables / indexes / FKs:** `admin/backend/alembic/versions/`
-- **ORM models:** `admin/backend/app/modules/*/models*`
+- **Tables / indexes / FKs:** `backend/alembic/versions/`
+- **ORM models:** `backend/app/modules/*/models*`
 
 MySQL is not used. Do not introduce `MYSQL_*` env vars or MySQL drivers.

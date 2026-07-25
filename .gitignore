@@ -52,7 +52,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # --- Uploads & runtime data ---
-admin/backend/uploads/
+backend/uploads/
 **/uploads/**
 !**/uploads/.gitkeep
 
