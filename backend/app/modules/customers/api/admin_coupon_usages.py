@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict
@@ -15,10 +16,10 @@ router = APIRouter(prefix="/admin/coupon-usages", tags=["Admin Coupon Usages"])
 
 
 class CouponUsageResponse(BaseModel):
-    id: int
-    coupon_id: int
-    customer_id: int
-    order_id: int | None
+    id: UUID
+    coupon_id: UUID
+    customer_id: UUID
+    order_id: UUID | None
     used_at: datetime
     discount_amount: Decimal | None
 
@@ -29,8 +30,8 @@ class CouponUsageResponse(BaseModel):
 def list_coupon_usages(
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
-    coupon_id: int | None = Query(default=None),
-    customer_id: int | None = Query(default=None),
+    coupon_id: UUID | None = Query(default=None),
+    customer_id: UUID | None = Query(default=None),
 ) -> list[CouponUsageResponse]:
     rows = CouponUsageRepository(db).list_all(
         coupon_id=coupon_id, customer_id=customer_id

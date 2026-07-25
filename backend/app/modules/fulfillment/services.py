@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 import string
 from datetime import datetime, timezone
+from uuid import UUID
 
 from app.modules.fulfillment.models import Shipment, ShipmentEvent
 from app.modules.fulfillment.repositories import (
@@ -72,7 +73,7 @@ class ShipmentService:
         return self._to_response(self.repository.get(shipment.id) or shipment)
 
     def schedule_pickup(
-        self, shipment_id: int, payload: PickupScheduleRequest
+        self, shipment_id: UUID, payload: PickupScheduleRequest
     ) -> ShipmentResponse:
         shipment = self._get_or_404(shipment_id)
         shipment.pickup_scheduled_at = payload.pickup_at or datetime.now(timezone.utc)
@@ -89,7 +90,7 @@ class ShipmentService:
         return self._to_response(self.repository.get(shipment.id) or shipment)
 
     def add_event(
-        self, shipment_id: int, payload: ShipmentEventCreate
+        self, shipment_id: UUID, payload: ShipmentEventCreate
     ) -> ShipmentResponse:
         shipment = self._get_or_404(shipment_id)
         event = ShipmentEvent(
@@ -109,7 +110,7 @@ class ShipmentService:
         return self._to_response(self.repository.get(shipment.id) or shipment)
 
     def mark_exception(
-        self, shipment_id: int, payload: ShipmentExceptionRequest
+        self, shipment_id: UUID, payload: ShipmentExceptionRequest
     ) -> ShipmentResponse:
         shipment = self._get_or_404(shipment_id)
         shipment.exception_flag = True
@@ -126,13 +127,13 @@ class ShipmentService:
         )
         return self._to_response(self.repository.get(shipment.id) or shipment)
 
-    def get_timeline(self, shipment_id: int) -> ShipmentResponse:
+    def get_timeline(self, shipment_id: UUID) -> ShipmentResponse:
         return self._to_response(self._get_or_404(shipment_id))
 
-    def get_for_order(self, order_id: int) -> list[ShipmentResponse]:
+    def get_for_order(self, order_id: UUID) -> list[ShipmentResponse]:
         return [self._to_response(row) for row in self.repository.get_for_order(order_id)]
 
-    def _get_or_404(self, shipment_id: int) -> Shipment:
+    def _get_or_404(self, shipment_id: UUID) -> Shipment:
         shipment = self.repository.get(shipment_id)
         if not shipment:
             raise NotFoundError("Shipment not found")

@@ -8,7 +8,6 @@ import cartReducer from "./cartSlice";
 import categoriesReducer from "./categoriesSlice";
 import couponsReducer from "./couponsSlice";
 import customersReducer from "./customersSlice";
-import dataSourceReducer from "./dataSourceSlice";
 import inventoryReducer from "./inventorySlice";
 import notificationsReducer from "./notificationsSlice";
 import ordersReducer from "./ordersSlice";
@@ -26,7 +25,6 @@ import usersReducer from "./usersSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    dataSource: dataSourceReducer,
     users: usersReducer,
     roles: rolesReducer,
     categories: categoriesReducer,

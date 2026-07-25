@@ -5,7 +5,6 @@ import type {
   AttributeDefinition,
   AttributeDefinitionInput,
 } from "@/lib/types";
-import { isDemoMockForced, mockAttributes, resolveDemoData } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -21,30 +20,16 @@ const initialState: AttributesState = {
   error: null,
 };
 
-let mockItems: AttributeDefinition[] = mockAttributes.map((item) => ({
-  ...item,
-  values: [...item.values],
-}));
-let nextMockId = Math.max(0, ...mockItems.map((item) => item.id)) + 1;
-
 export const fetchAttributes = createAsyncThunk<
   AttributeDefinition[],
   void,
   { state: StateWithAuth }
 >("attributes/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) {
-    return mockItems.map((item) => ({ ...item, values: [...item.values] }));
-  }
-  try {
-    const data = await apiRequest<AttributeDefinition[]>(
-      "/attributes",
-      {},
-      getState().auth.token,
-    );
-    return resolveDemoData(data, mockAttributes);
-  } catch {
-    return resolveDemoData([], mockAttributes);
-  }
+  return apiRequest<AttributeDefinition[]>(
+    "/attributes",
+    {},
+    getState().auth.token,
+  );
 });
 
 export const createAttribute = createAsyncThunk<
@@ -52,20 +37,6 @@ export const createAttribute = createAsyncThunk<
   AttributeDefinitionInput,
   { state: StateWithAuth }
 >("attributes/create", async (payload, { getState }) => {
-  if (isDemoMockForced()) {
-    const now = new Date().toISOString();
-    const created: AttributeDefinition = {
-      id: nextMockId++,
-      name: payload.name.trim(),
-      values: [...payload.values],
-      sort_order: payload.sort_order ?? 0,
-      is_active: payload.is_active ?? true,
-      created_at: now,
-      updated_at: now,
-    };
-    mockItems = [...mockItems, created];
-    return { ...created, values: [...created.values] };
-  }
   return apiRequest<AttributeDefinition>(
     "/attributes",
     { method: "POST", body: JSON.stringify(payload) },
@@ -75,28 +46,9 @@ export const createAttribute = createAsyncThunk<
 
 export const updateAttribute = createAsyncThunk<
   AttributeDefinition,
-  { id: number; changes: AttributeDefinitionInput },
+  { id: string; changes: AttributeDefinitionInput },
   { state: StateWithAuth }
 >("attributes/update", async ({ id, changes }, { getState }) => {
-  if (isDemoMockForced()) {
-    const index = mockItems.findIndex((item) => item.id === id);
-    if (index < 0) throw new Error("Attribute not found");
-    const current = mockItems[index];
-    const updated: AttributeDefinition = {
-      ...current,
-      name: changes.name.trim(),
-      values: [...changes.values],
-      sort_order:
-        changes.sort_order !== undefined
-          ? changes.sort_order
-          : current.sort_order,
-      is_active:
-        changes.is_active !== undefined ? changes.is_active : current.is_active,
-      updated_at: new Date().toISOString(),
-    };
-    mockItems = mockItems.map((item) => (item.id === id ? updated : item));
-    return { ...updated, values: [...updated.values] };
-  }
   return apiRequest<AttributeDefinition>(
     `/attributes/${id}`,
     { method: "PATCH", body: JSON.stringify(changes) },
@@ -105,14 +57,10 @@ export const updateAttribute = createAsyncThunk<
 });
 
 export const deleteAttribute = createAsyncThunk<
-  number,
-  number,
+  string,
+  string,
   { state: StateWithAuth }
 >("attributes/delete", async (id, { getState }) => {
-  if (isDemoMockForced()) {
-    mockItems = mockItems.filter((item) => item.id !== id);
-    return id;
-  }
   await apiRequest<void>(
     `/attributes/${id}`,
     { method: "DELETE" },

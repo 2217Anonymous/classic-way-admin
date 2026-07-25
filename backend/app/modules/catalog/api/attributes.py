@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
@@ -31,7 +32,7 @@ def list_attributes(
 
 @router.get("/{attribute_id}", response_model=AttributeDefinitionResponse)
 def get_attribute(
-    attribute_id: int,
+    attribute_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> AttributeDefinitionResponse:
@@ -49,7 +50,7 @@ def create_attribute(
 
 @router.patch("/{attribute_id}", response_model=AttributeDefinitionResponse)
 def update_attribute(
-    attribute_id: int,
+    attribute_id: UUID,
     payload: AttributeDefinitionUpdate,
     db: DbSession,
     _: AdminUser,
@@ -58,5 +59,5 @@ def update_attribute(
 
 
 @router.delete("/{attribute_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_attribute(attribute_id: int, db: DbSession, _: AdminUser) -> None:
+def delete_attribute(attribute_id: UUID, db: DbSession, _: AdminUser) -> None:
     get_service(db).delete_attribute(attribute_id)

@@ -12,7 +12,7 @@ export default function ProductDetailRoute({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const productId = Number(id);
+  const productId = String(id);
 
   return (
     <AuthGate>
@@ -25,7 +25,7 @@ export default function ProductDetailRoute({
             { label: "Product Details" },
           ]}
         >
-          {Number.isFinite(productId) ? (
+          {productId ? (
             <ProductDetailsPage productId={productId} />
           ) : (
             <p className="text-sm text-[var(--muted)]">Invalid product.</p>

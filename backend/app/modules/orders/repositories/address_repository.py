@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,13 +11,13 @@ class AddressRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def list(self, user_id: int | None = None) -> list[CustomerAddress]:
+    def list(self, user_id: UUID | None = None) -> list[CustomerAddress]:
         statement = select(CustomerAddress).order_by(CustomerAddress.id.desc())
         if user_id is not None:
             statement = statement.where(CustomerAddress.user_id == user_id)
         return list(self.db.scalars(statement).all())
 
-    def list_for_customer(self, customer_id: int) -> list[CustomerAddress]:
+    def list_for_customer(self, customer_id: UUID) -> list[CustomerAddress]:
         statement = (
             select(CustomerAddress)
             .where(CustomerAddress.customer_id == customer_id)
@@ -24,7 +25,7 @@ class AddressRepository:
         )
         return list(self.db.scalars(statement).all())
 
-    def get(self, address_id: int) -> CustomerAddress | None:
+    def get(self, address_id: UUID) -> CustomerAddress | None:
         return self.db.get(CustomerAddress, address_id)
 
     def create(self, **fields) -> CustomerAddress:
@@ -44,13 +45,13 @@ class AddressRepository:
         self.db.delete(row)
         self.db.commit()
 
-    def unset_default_for_user(self, user_id: int | None) -> None:
+    def unset_default_for_user(self, user_id: UUID | None) -> None:
         statement = select(CustomerAddress).where(CustomerAddress.user_id == user_id)
         for row in self.db.scalars(statement).all():
             row.is_default = False
         self.db.commit()
 
-    def unset_default_for_customer(self, customer_id: int) -> None:
+    def unset_default_for_customer(self, customer_id: UUID) -> None:
         statement = select(CustomerAddress).where(
             CustomerAddress.customer_id == customer_id
         )

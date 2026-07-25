@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,8 +36,8 @@ class ProductCreate(BaseModel):
     tags: str | None = Field(default=None, max_length=500)
     visibility: str = Field(default="public", max_length=32)
     published_at: datetime | None = None
-    category_id: int | None = None
-    brand_id: int | None = None
+    category_id: UUID | None = None
+    brand_id: UUID | None = None
     is_published: bool = False
     is_active: bool = True
     is_featured: bool = False
@@ -64,8 +65,8 @@ class ProductUpdate(BaseModel):
     tags: str | None = Field(default=None, max_length=500)
     visibility: str | None = Field(default=None, max_length=32)
     published_at: datetime | None = None
-    category_id: int | None = None
-    brand_id: int | None = None
+    category_id: UUID | None = None
+    brand_id: UUID | None = None
     is_published: bool | None = None
     is_active: bool | None = None
     is_featured: bool | None = None
@@ -79,8 +80,8 @@ class ProductUpdate(BaseModel):
 
 
 class ProductMediaResponse(BaseModel):
-    id: int
-    product_id: int
+    id: UUID
+    product_id: UUID
     url: str
     alt_text: str | None
     sort_order: int
@@ -91,12 +92,12 @@ class ProductMediaResponse(BaseModel):
 
 
 class ProductMediaOrderUpdate(BaseModel):
-    media_ids: list[int] = Field(min_length=1)
+    media_ids: list[UUID] = Field(min_length=1)
 
 
 class ProductAttributeResponse(BaseModel):
-    id: int
-    product_id: int
+    id: UUID
+    product_id: UUID
     name: str
     values: list[Any] = Field(default_factory=list)
     sort_order: int
@@ -106,8 +107,8 @@ class ProductAttributeResponse(BaseModel):
 
 
 class ProductVariantResponse(BaseModel):
-    id: int
-    product_id: int
+    id: UUID
+    product_id: UUID
     sku: str
     price: Decimal | None
     stock: int
@@ -121,7 +122,7 @@ class ProductVariantResponse(BaseModel):
 
 
 class ProductResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     slug: str
     description: str | None
@@ -136,9 +137,9 @@ class ProductResponse(BaseModel):
     tags: str | None = None
     visibility: str = "public"
     published_at: datetime | None = None
-    category_id: int | None
+    category_id: UUID | None
     category_name: str | None = None
-    brand_id: int | None = None
+    brand_id: UUID | None = None
     is_published: bool
     is_active: bool
     is_featured: bool = False

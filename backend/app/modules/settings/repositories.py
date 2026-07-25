@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -45,7 +46,7 @@ class TaxRuleRepository:
         )
         return list(self.db.scalars(statement).all())
 
-    def get(self, tax_id: int) -> TaxRule | None:
+    def get(self, tax_id: UUID) -> TaxRule | None:
         return self.db.get(TaxRule, tax_id)
 
     def get_by_code(self, code: str) -> TaxRule | None:
@@ -80,7 +81,7 @@ class CouponRepository:
         statement = select(Coupon).order_by(Coupon.created_at.desc())
         return list(self.db.scalars(statement).all())
 
-    def get(self, coupon_id: int) -> Coupon | None:
+    def get(self, coupon_id: UUID) -> Coupon | None:
         return self.db.get(Coupon, coupon_id)
 
     def get_by_code(self, code: str) -> Coupon | None:

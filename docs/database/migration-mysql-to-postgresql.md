@@ -1,33 +1,32 @@
-# MySQL → PostgreSQL (historical)
+# MySQL → PostgreSQL
 
-Valaiyagam now runs exclusively on **PostgreSQL 16 + psycopg (v3)**.
+Classic Way runs on **PostgreSQL 16 + psycopg (v3)** only. MySQL is not used.
 
-The legacy `mysql/` bootstrap directory has been **removed**. Use:
+| Area | Value |
+|------|--------|
+| Engine | PostgreSQL 16 |
+| Driver | `psycopg[binary]` |
+| URL | `postgresql+psycopg://classic_way:classic_way@classic-way-db:5432/classic_way` |
+| Env | `POSTGRES_*` or `DATABASE_URL` |
+| Docker DB | container `classic-way-db`, database `classic_way` |
 
-| Concern | Location |
-|---------|----------|
-| Extensions | `database/schema/init.sql` |
-| Table DDL | `backend/alembic/versions/` |
-| Env sample | root `env-sample.txt` / `backend/.env.example` |
+## Docker (recommended)
 
-## What changed (summary)
-
-| Area | Before | After |
-|------|--------|-------|
-| Engine | MySQL 8.4 | PostgreSQL 16 |
-| Driver | `pymysql` | `psycopg[binary]` |
-| URL | `mysql+pymysql://...` | `postgresql+psycopg://...` |
-| Env vars | `MYSQL_*` | `POSTGRES_*` / `DATABASE_URL` |
-
-## Fresh environment
+From `D:\VT-Workspace`:
 
 ```bash
-# 1. Create Postgres DB/user from env-sample.txt
-# 2. Apply extensions
-psql -U valaiyagam -d valaiyagam -f database/schema/init.sql
+cp .env.example .env
+docker compose up --build
+```
 
-# 3. Apply migrations
-cd backend
+Admin backend runs `alembic upgrade head` on start (schema owner).
+Shopping backend uses the same Postgres database.
+
+## Local without Docker DB
+
+```bash
+# Point POSTGRES_* at classic-way-db published port (default 5434)
+cd classic-way-admin/backend
 alembic upgrade head
 ```
 

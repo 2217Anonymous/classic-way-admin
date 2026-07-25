@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -13,6 +14,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    Uuid,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -23,7 +25,9 @@ from app.core.database import Base
 class Product(Base):
     __tablename__ = "products"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     name: Mapped[str] = mapped_column(String(160))
     slug: Mapped[str] = mapped_column(String(180), unique=True, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -42,12 +46,14 @@ class Product(Base):
     tags: Mapped[str | None] = mapped_column(String(500), nullable=True)
     visibility: Mapped[str] = mapped_column(String(32), default="public")
     published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    category_id: Mapped[int | None] = mapped_column(
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
         ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
-    brand_id: Mapped[int | None] = mapped_column(
+    brand_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
         ForeignKey("brands.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
@@ -94,8 +100,11 @@ class Product(Base):
 class ProductMedia(Base):
     __tablename__ = "product_media"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    product_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE"),
         index=True,
     )
@@ -113,8 +122,11 @@ class ProductAttribute(Base):
 
     __tablename__ = "product_attributes"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    product_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE"),
         index=True,
     )
@@ -131,8 +143,11 @@ class ProductVariant(Base):
 
     __tablename__ = "product_variants"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    product_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE"),
         index=True,
     )

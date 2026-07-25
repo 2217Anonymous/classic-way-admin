@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -49,7 +50,7 @@ def list_orders(
 
 @router.get("/{order_id}", response_model=OrderResponse)
 def get_order(
-    order_id: int,
+    order_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> OrderResponse:
@@ -58,11 +59,11 @@ def get_order(
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)
 def cancel_order(
-    order_id: int, payload: OrderCancelRequest, db: DbSession, _: AdminUser
+    order_id: UUID, payload: OrderCancelRequest, db: DbSession, _: AdminUser
 ) -> OrderResponse:
     return get_service(db).cancel_order(order_id, payload.reason)
 
 
 @router.post("/{order_id}/mark-paid", response_model=OrderResponse)
-def mark_order_paid(order_id: int, db: DbSession, _: AdminUser) -> OrderResponse:
+def mark_order_paid(order_id: UUID, db: DbSession, _: AdminUser) -> OrderResponse:
     return get_service(db).mark_paid(order_id)

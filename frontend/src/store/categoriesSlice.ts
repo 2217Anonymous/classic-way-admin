@@ -2,13 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { Category, CategoryInput, CategoryTreeNode } from "@/lib/types";
-import {
-  buildCategoryTree,
-  isDemoMockForced,
-  mockCategories,
-  mockCategoryTree,
-  resolveDemoData,
-} from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -26,12 +19,9 @@ const initialState: CategoriesState = {
   error: null,
 };
 
-let mockItems: Category[] = mockCategories.map((item) => ({ ...item }));
-let nextMockId = Math.max(0, ...mockItems.map((item) => item.id)) + 1;
-
 function pruneTree(
   nodes: CategoryTreeNode[],
-  deletedIds: Set<number>,
+  deletedIds: Set<string>,
 ): CategoryTreeNode[] {
   return nodes
     .filter((node) => !deletedIds.has(node.id))
@@ -41,37 +31,16 @@ function pruneTree(
     }));
 }
 
-function collectDescendantIds(id: number, items: Category[]): number[] {
-  const children = items.filter((item) => item.parent_id === id);
-  return children.flatMap((child) => [
-    child.id,
-    ...collectDescendantIds(child.id, items),
-  ]);
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export const fetchCategories = createAsyncThunk<
   Category[],
   void,
   { state: StateWithAuth }
 >("categories/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockItems.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<Category[]>(
-      "/categories",
-      {},
-      getState().auth.token,
-    );
-    return resolveDemoData(data, mockCategories);
-  } catch {
-    return resolveDemoData([], mockCategories);
-  }
+  return apiRequest<Category[]>(
+    "/categories",
+    {},
+    getState().auth.token,
+  );
 });
 
 export const fetchCategoryTree = createAsyncThunk<
@@ -79,17 +48,11 @@ export const fetchCategoryTree = createAsyncThunk<
   void,
   { state: StateWithAuth }
 >("categories/fetchTree", async (_, { getState }) => {
-  if (isDemoMockForced()) return buildCategoryTree(mockItems);
-  try {
-    const data = await apiRequest<CategoryTreeNode[]>(
-      "/categories/tree",
-      {},
-      getState().auth.token,
-    );
-    return resolveDemoData(data, mockCategoryTree);
-  } catch {
-    return resolveDemoData([], mockCategoryTree);
-  }
+  return apiRequest<CategoryTreeNode[]>(
+    "/categories/tree",
+    {},
+    getState().auth.token,
+  );
 });
 
 export const createCategory = createAsyncThunk<
@@ -97,23 +60,6 @@ export const createCategory = createAsyncThunk<
   CategoryInput,
   { state: StateWithAuth }
 >("categories/create", async (payload, { getState }) => {
-  if (isDemoMockForced()) {
-    const now = new Date().toISOString();
-    const created: Category = {
-      id: nextMockId++,
-      name: payload.name.trim(),
-      slug: payload.slug?.trim() || slugify(payload.name),
-      description: payload.description?.trim() || null,
-      image_url: null,
-      parent_id: payload.parent_id ?? null,
-      is_active: payload.is_active ?? true,
-      sort_order: payload.sort_order ?? 0,
-      created_at: now,
-      updated_at: now,
-    };
-    mockItems = [...mockItems, created];
-    return { ...created };
-  }
   return apiRequest<Category>(
     "/categories",
     { method: "POST", body: JSON.stringify(payload) },
@@ -123,34 +69,9 @@ export const createCategory = createAsyncThunk<
 
 export const updateCategory = createAsyncThunk<
   Category,
-  { id: number; changes: CategoryInput },
+  { id: string; changes: CategoryInput },
   { state: StateWithAuth }
 >("categories/update", async ({ id, changes }, { getState }) => {
-  if (isDemoMockForced()) {
-    const index = mockItems.findIndex((item) => item.id === id);
-    if (index < 0) throw new Error("Category not found");
-    const current = mockItems[index];
-    const updated: Category = {
-      ...current,
-      name: changes.name.trim(),
-      slug: changes.slug?.trim() || slugify(changes.name),
-      description:
-        changes.description !== undefined
-          ? changes.description.trim() || null
-          : current.description,
-      parent_id:
-        changes.parent_id !== undefined ? changes.parent_id : current.parent_id,
-      is_active:
-        changes.is_active !== undefined ? changes.is_active : current.is_active,
-      sort_order:
-        changes.sort_order !== undefined
-          ? changes.sort_order
-          : current.sort_order,
-      updated_at: new Date().toISOString(),
-    };
-    mockItems = mockItems.map((item) => (item.id === id ? updated : item));
-    return { ...updated };
-  }
   return apiRequest<Category>(
     `/categories/${id}`,
     { method: "PATCH", body: JSON.stringify(changes) },
@@ -160,20 +81,9 @@ export const updateCategory = createAsyncThunk<
 
 export const uploadCategoryImage = createAsyncThunk<
   Category,
-  { id: number; file: File },
+  { id: string; file: File },
   { state: StateWithAuth }
 >("categories/uploadImage", async ({ id, file }, { getState }) => {
-  if (isDemoMockForced()) {
-    const index = mockItems.findIndex((item) => item.id === id);
-    if (index < 0) throw new Error("Category not found");
-    const updated: Category = {
-      ...mockItems[index],
-      image_url: URL.createObjectURL(file),
-      updated_at: new Date().toISOString(),
-    };
-    mockItems = mockItems.map((item) => (item.id === id ? updated : item));
-    return { ...updated };
-  }
   const body = new FormData();
   body.append("file", file);
   return apiRequest<Category>(
@@ -184,17 +94,11 @@ export const uploadCategoryImage = createAsyncThunk<
 });
 
 export const deleteCategory = createAsyncThunk<
-  number[],
-  number,
+  string[],
+  string,
   { state: StateWithAuth }
 >("categories/delete", async (id, { getState }) => {
-  if (isDemoMockForced()) {
-    const deletedIds = [id, ...collectDescendantIds(id, mockItems)];
-    const deletedSet = new Set(deletedIds);
-    mockItems = mockItems.filter((item) => !deletedSet.has(item.id));
-    return deletedIds;
-  }
-  const result = await apiRequest<{ deleted_ids: number[] }>(
+  const result = await apiRequest<{ deleted_ids: string[] }>(
     `/categories/${id}`,
     { method: "DELETE" },
     getState().auth.token,

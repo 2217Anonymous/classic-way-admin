@@ -2,7 +2,7 @@
 
 ## Pre-cutover
 
-1. Set `NEXT_PUBLIC_DEMO_MOCK=0` (or `false`) for production frontend builds.
+1. Ensure admin and shopping frontends are built against live API URLs (no mock data).
 2. Rotate `SECRET_KEY`, MySQL passwords, and admin password.
 3. Configure CORS to production storefront/admin origins only.
 4. Provision HTTPS (reverse proxy / cloud load balancer).

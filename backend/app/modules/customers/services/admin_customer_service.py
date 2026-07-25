@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from app.modules.customers.models import Customer
 from app.modules.customers.repositories.customer_repository import CustomerRepository
 from app.modules.customers.schemas.auth import CustomerResponse
@@ -26,18 +27,18 @@ class AdminCustomerService:
             for c in self.repository.list(search=search, is_active=is_active)
         ]
 
-    def get_customer(self, customer_id: int) -> CustomerResponse:
+    def get_customer(self, customer_id: UUID) -> CustomerResponse:
         customer = self._get_or_404(customer_id)
         return CustomerResponse.model_validate(customer)
 
     def update_status(
-        self, customer_id: int, payload: CustomerStatusUpdate
+        self, customer_id: UUID, payload: CustomerStatusUpdate
     ) -> CustomerResponse:
         customer = self._get_or_404(customer_id)
         customer.is_active = payload.is_active
         return CustomerResponse.model_validate(self.repository.save(customer))
 
-    def _get_or_404(self, customer_id: int) -> Customer:
+    def _get_or_404(self, customer_id: UUID) -> Customer:
         customer = self.repository.get(customer_id)
         if not customer:
             raise NotFoundError("Customer not found")

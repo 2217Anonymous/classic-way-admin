@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -28,7 +29,7 @@ class UserRepository:
     def count(self) -> int:
         return self.db.scalar(select(func.count()).select_from(User)) or 0
 
-    def get(self, user_id: int) -> User | None:
+    def get(self, user_id: UUID) -> User | None:
         return self.db.scalar(
             select(User).options(selectinload(User.roles)).where(User.id == user_id)
         )

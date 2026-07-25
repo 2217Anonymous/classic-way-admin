@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,8 +17,8 @@ class CheckoutAddressInput(BaseModel):
 
 
 class CheckoutRequest(BaseModel):
-    cart_id: int
-    address_id: int | None = None
+    cart_id: UUID
+    address_id: UUID | None = None
     address: CheckoutAddressInput | None = None
     payment_method: str = Field(pattern=r"^(razorpay|cod)$")
     coupon_code: str | None = Field(default=None, max_length=40)
@@ -25,10 +26,10 @@ class CheckoutRequest(BaseModel):
 
 
 class OrderItemResponse(BaseModel):
-    id: int
-    order_id: int
-    product_id: int | None
-    variant_id: int | None
+    id: UUID
+    order_id: UUID
+    product_id: UUID | None
+    variant_id: UUID | None
     sku: str | None
     name: str
     quantity: int
@@ -39,8 +40,8 @@ class OrderItemResponse(BaseModel):
 
 
 class OrderStatusHistoryResponse(BaseModel):
-    id: int
-    order_id: int
+    id: UUID
+    order_id: UUID
     from_status: str | None
     to_status: str
     note: str | None
@@ -50,10 +51,10 @@ class OrderStatusHistoryResponse(BaseModel):
 
 
 class OrderResponse(BaseModel):
-    id: int
+    id: UUID
     order_number: str
-    user_id: int | None
-    customer_id: int | None = None
+    user_id: UUID | None
+    customer_id: UUID | None = None
     status: str
     payment_method: str
     subtotal: Decimal

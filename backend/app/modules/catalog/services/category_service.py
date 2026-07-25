@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from uuid import UUID
 from pathlib import Path
 
 from fastapi import UploadFile
@@ -60,7 +61,7 @@ class CategoryService:
                 roots.append(node)
         return roots
 
-    def get_category(self, category_id: int) -> Category:
+    def get_category(self, category_id: UUID) -> Category:
         category = self.repository.get(category_id)
         if not category:
             raise NotFoundError("Category not found")
@@ -86,7 +87,7 @@ class CategoryService:
             self.repository.rollback()
             raise ConflictError("A category with this slug already exists") from exc
 
-    def update_category(self, category_id: int, payload: CategoryUpdate) -> Category:
+    def update_category(self, category_id: UUID, payload: CategoryUpdate) -> Category:
         category = self.get_category(category_id)
         changes = payload.model_dump(exclude_unset=True)
 
@@ -122,7 +123,7 @@ class CategoryService:
             self.repository.rollback()
             raise ConflictError("A category with this slug already exists") from exc
 
-    def delete_category(self, category_id: int) -> list[int]:
+    def delete_category(self, category_id: UUID) -> list[UUID]:
         category = self.get_category(category_id)
         deleted_ids = self._collect_subtree_ids(category.id)
         image_paths = []
@@ -135,7 +136,7 @@ class CategoryService:
             self._delete_image_file(image_url)
         return deleted_ids
 
-    async def upload_image(self, category_id: int, upload: UploadFile) -> Category:
+    async def upload_image(self, category_id: UUID, upload: UploadFile) -> Category:
         category = self.get_category(category_id)
         content_type = (upload.content_type or "").lower()
         extension = ALLOWED_IMAGE_TYPES.get(content_type)
@@ -160,10 +161,10 @@ class CategoryService:
             self._delete_image_file(old_image)
         return saved
 
-    def _collect_subtree_ids(self, category_id: int) -> list[int]:
-        ordered: list[int] = []
+    def _collect_subtree_ids(self, category_id: UUID) -> list[UUID]:
+        ordered: list[UUID] = []
 
-        def walk(current_id: int) -> None:
+        def walk(current_id: UUID) -> None:
             for child in self.repository.list_children(current_id):
                 walk(child.id)
             ordered.append(current_id)
@@ -178,7 +179,7 @@ class CategoryService:
         if path.exists() and path.is_file():
             path.unlink()
 
-    def _validate_parent(self, parent_id: int | None) -> Category | None:
+    def _validate_parent(self, parent_id: UUID | None) -> Category | None:
         if parent_id is None:
             return None
         parent = self.repository.get(parent_id)
@@ -186,7 +187,7 @@ class CategoryService:
             raise NotFoundError("Parent category not found")
         return parent
 
-    def _is_descendant(self, ancestor_id: int, candidate_id: int) -> bool:
+    def _is_descendant(self, ancestor_id: UUID, candidate_id: UUID) -> bool:
         current = self.repository.get(candidate_id)
         seen: set[int] = set()
         while current and current.parent_id is not None:

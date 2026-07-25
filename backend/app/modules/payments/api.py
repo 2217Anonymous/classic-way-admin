@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, status
 
@@ -82,6 +83,6 @@ def razorpay_webhook(
 
 @router.post("/{payment_id}/refund", response_model=RefundResponse)
 def refund_payment(
-    payment_id: int, payload: RefundRequest, db: DbSession, _: AdminUser
+    payment_id: UUID, payload: RefundRequest, db: DbSession, _: AdminUser
 ) -> RefundResponse:
     return get_service(db).refund(payment_id, payload)

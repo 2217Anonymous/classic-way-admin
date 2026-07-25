@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -45,7 +46,7 @@ class ShipmentRepository:
         )
         return list(self.db.scalars(statement).unique().all())
 
-    def get(self, shipment_id: int) -> Shipment | None:
+    def get(self, shipment_id: UUID) -> Shipment | None:
         statement = (
             select(Shipment)
             .where(Shipment.id == shipment_id)
@@ -53,7 +54,7 @@ class ShipmentRepository:
         )
         return self.db.scalars(statement).unique().first()
 
-    def get_for_order(self, order_id: int) -> list[Shipment]:
+    def get_for_order(self, order_id: UUID) -> list[Shipment]:
         statement = (
             select(Shipment)
             .where(Shipment.order_id == order_id)

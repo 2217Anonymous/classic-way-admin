@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,7 +17,7 @@ class CategoryRepository:
         )
         return list(self.db.scalars(statement).all())
 
-    def list_children(self, parent_id: int) -> list[Category]:
+    def list_children(self, parent_id: UUID) -> list[Category]:
         statement = (
             select(Category)
             .where(Category.parent_id == parent_id)
@@ -24,7 +25,7 @@ class CategoryRepository:
         )
         return list(self.db.scalars(statement).all())
 
-    def get(self, category_id: int) -> Category | None:
+    def get(self, category_id: UUID) -> Category | None:
         return self.db.get(Category, category_id)
 
     def get_by_slug(self, slug: str) -> Category | None:
@@ -47,7 +48,7 @@ class CategoryRepository:
         self.db.delete(category)
         self.db.commit()
 
-    def delete_ids(self, category_ids: list[int]) -> None:
+    def delete_ids(self, category_ids: list[UUID]) -> None:
         for category_id in category_ids:
             category = self.get(category_id)
             if category:
@@ -57,7 +58,7 @@ class CategoryRepository:
     def rollback(self) -> None:
         self.db.rollback()
 
-    def has_children(self, category_id: int) -> bool:
+    def has_children(self, category_id: UUID) -> bool:
         child = self.db.scalar(
             select(Category.id).where(Category.parent_id == category_id).limit(1)
         )

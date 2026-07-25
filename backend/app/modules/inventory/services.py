@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from app.modules.catalog.models.product import Product
 from app.modules.catalog.repositories.product_repository import ProductRepository
 from app.modules.inventory.models import InventoryItem
@@ -80,7 +81,7 @@ class InventoryService:
             if (item.quantity - item.reserved) <= threshold
         ]
 
-    def adjust(self, item_id: int, payload: StockAdjustRequest) -> InventoryItemResponse:
+    def adjust(self, item_id: UUID, payload: StockAdjustRequest) -> InventoryItemResponse:
         item = self.repository.get(item_id)
         if not item:
             raise NotFoundError("Inventory item not found")

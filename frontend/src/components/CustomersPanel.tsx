@@ -35,7 +35,7 @@ export function CustomersPanel() {
   const dispatch = useAppDispatch();
   const { items, loading, error } = useAppSelector((state) => state.customers);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     void dispatch(fetchCustomers());

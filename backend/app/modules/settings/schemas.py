@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -20,7 +21,7 @@ class StoreSettingsUpdate(BaseModel):
 
 
 class StoreSettingsResponse(BaseModel):
-    id: int
+    id: UUID
     store_name: str
     legal_name: str | None
     email: str | None
@@ -62,7 +63,7 @@ class TaxRuleUpdate(BaseModel):
 
 
 class TaxRuleResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     code: str
     rate_percent: Decimal
@@ -102,7 +103,7 @@ class CouponUpdate(BaseModel):
 
 
 class CouponResponse(BaseModel):
-    id: int
+    id: UUID
     code: str
     name: str
     discount_type: str

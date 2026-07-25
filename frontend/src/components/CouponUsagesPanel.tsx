@@ -15,10 +15,10 @@ import { toastError } from "@/lib/toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 type CouponUsage = {
-  id: number;
-  coupon_id: number;
-  customer_id: number;
-  order_id: number | null;
+  id: string;
+  coupon_id: string;
+  customer_id: string;
+  order_id: string | null;
   used_at: string;
   discount_amount: string | number | null;
 };

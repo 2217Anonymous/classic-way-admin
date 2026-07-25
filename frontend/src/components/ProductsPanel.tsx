@@ -55,12 +55,20 @@ function formatPublished(product: Product) {
 }
 
 /** Stable display-only metrics when API has no orders/rating fields */
+function hashId(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 function demoOrders(product: Product) {
-  return 10 + ((product.id * 17) % 90);
+  return 10 + (hashId(String(product.id)) % 90);
 }
 
 function demoRating(product: Product) {
-  return (3.5 + ((product.id * 3) % 16) / 10).toFixed(1);
+  return (3.5 + (hashId(String(product.id)) % 16) / 10).toFixed(1);
 }
 
 function ProductThumb({ product }: { product: Product }) {
@@ -123,12 +131,11 @@ export function ProductsPanel() {
   const router = useRouter();
   const { items, loading, error } = useAppSelector((state) => state.products);
   const categories = useAppSelector((state) => state.categories.items);
-  const dataRevision = useAppSelector((state) => state.dataSource.revision);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [publishTab, setPublishTab] = useState<PublishTab>("all");
-  const [categoryFilter, setCategoryFilter] = useState<number | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string | "all">("all");
   const [brandFilter, setBrandFilter] = useState<string>("all");
   const [discountOnly, setDiscountOnly] = useState(false);
   const [minRating, setMinRating] = useState(0);
@@ -142,7 +149,7 @@ export function ProductsPanel() {
   useEffect(() => {
     void dispatch(fetchProducts());
     void dispatch(fetchCategories());
-  }, [dispatch, dataRevision]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (error) toastError(dispatch, "Request failed", error);
@@ -166,7 +173,7 @@ export function ProductsPanel() {
   }, [items.length, priceBounds, priceInitialized]);
 
   const categoryCounts = useMemo(() => {
-    const map = new Map<number | "none", number>();
+    const map = new Map<string | "none", number>();
     for (const product of items) {
       const key = product.category_id ?? "none";
       map.set(key, (map.get(key) ?? 0) + 1);
@@ -342,7 +349,7 @@ export function ProductsPanel() {
               value={categoryFilter === "all" ? "all" : String(categoryFilter)}
               onChange={(event) => {
                 const value = event.target.value;
-                setCategoryFilter(value === "all" ? "all" : Number(value));
+                setCategoryFilter(value === "all" ? "all" : String(value));
                 table.setPage(1);
               }}
               aria-label="Quick category select"

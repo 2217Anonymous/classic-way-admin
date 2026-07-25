@@ -1,16 +1,17 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class PaymentCreateRequest(BaseModel):
-    order_id: int
+    order_id: UUID
 
 
 class PaymentResponse(BaseModel):
-    id: int
-    order_id: int
+    id: UUID
+    order_id: UUID
     provider: str
     provider_order_id: str | None
     provider_payment_id: str | None
@@ -46,9 +47,9 @@ class RefundRequest(BaseModel):
 
 
 class RefundResponse(BaseModel):
-    id: int
-    payment_id: int
-    order_id: int
+    id: UUID
+    payment_id: UUID
+    order_id: UUID
     amount: Decimal
     reason: str | None
     status: str

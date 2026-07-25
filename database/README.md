@@ -1,58 +1,64 @@
-# Database
+# Database (PostgreSQL)
 
-PostgreSQL 16 is the system of record for Valaiyagam.
+Classic Way uses **one shared PostgreSQL database** for admin and shopping.
+**Production apps read/write database data only** — no frontend mock catalog.
 
-## Layout
-
-```text
-database/
-├── schema/
-│   └── init.sql          # Extensions on first Postgres boot
-├── seeds/
-│   └── fashion_seed.py   # Fashion / T-shirt sample catalog
-├── migrations/           # Notes — Alembic lives in backend/alembic
-└── README.md
-```
-
-## Connection
-
-```text
-postgresql+psycopg://USER:PASSWORD@HOST:5432/DB
-```
-
-Environment variables (see root `env-sample.txt`):
-
-```text
-POSTGRES_HOST
-POSTGRES_PORT
-POSTGRES_DB
-POSTGRES_USER
-POSTGRES_PASSWORD
-DATABASE_URL   # optional full SQLAlchemy URL override
-```
-
-## Bootstrap
-
-1. Create a Postgres database/user matching `POSTGRES_*`.
-2. Run `database/schema/init.sql` (extensions).
-3. Apply Alembic migrations (table DDL source of truth):
+## Docker
 
 ```bash
-cd backend
+cd D:\VT-Workspace
+docker compose up -d classic-way-db
+```
+
+| Setting | Value |
+|---------|--------|
+| Container | `classic-way-db` |
+| Database | `classic_way` |
+| User / password | `classic_way` / `classic_way` |
+| Host port | `5434` → container `5432` |
+
+## Env
+
+```
+POSTGRES_HOST=classic-way-db   # inside Docker network
+POSTGRES_PORT=5432
+POSTGRES_DB=classic_way
+POSTGRES_USER=classic_way
+POSTGRES_PASSWORD=classic_way
+```
+
+Local apps on the host use `POSTGRES_HOST=localhost` and `POSTGRES_PORT=5434`.
+
+## Complete schema
+
+Reference dump (all tables, sequences, constraints, indexes):
+
+`database/schema/complete_schema.sql`
+
+**Primary keys & foreign keys use PostgreSQL `uuid`** (generated in app via `uuid4`). Integer IDs are not used for entity keys.
+
+Tables include: users/roles, customers/addresses, brands, categories, products (+ media, variants, attributes), inventory, carts, wishlists, compare, orders/payments/shipments, coupons, reviews/feedback, store settings, notifications, and Alembic version tracking.
+
+Apply schema via migrations (preferred), not by hand-running the dump:
+
+```bash
+cd classic-way-admin/backend
 alembic upgrade head
 ```
 
-## Seeds
+Admin API container runs `alembic upgrade head` on start.
+
+## Bootstrap
+
+`database/schema/init.sql` — extensions only (`pgcrypto`, `uuid-ossp`), loaded by Postgres docker entrypoint.
+
+## Seed (optional)
 
 ```bash
-cd backend
-python ../database/seeds/fashion_seed.py
+cd classic-way-admin
+python database/seeds/fashion_seed.py
 ```
 
-## Schema ownership
+Seeds write into Postgres so shopping/admin UIs show real catalog rows.
 
-- **Extensions / timezone:** `database/schema/init.sql`
-- **Tables / indexes / FKs:** `backend/alembic/versions/`
-- **ORM models:** `backend/app/modules/*/models*`
-
-MySQL is not used. Do not introduce `MYSQL_*` env vars or MySQL drivers.
+MySQL is not used.

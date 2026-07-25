@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { NotificationItem, SendTestNotificationInput } from "@/lib/types";
-import { isDemoMockForced, mockNotifications, resolveDemoData } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -18,25 +17,16 @@ const initialState: NotificationsState = {
   error: null,
 };
 
-let mockItems: NotificationItem[] = mockNotifications.map((item) => ({ ...item }));
-let nextMockId = Math.max(0, ...mockItems.map((item) => item.id)) + 1;
-
 export const fetchNotifications = createAsyncThunk<
   NotificationItem[],
   void,
   { state: StateWithAuth }
 >("notifications/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockItems.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<NotificationItem[]>(
-      "/notifications",
-      {},
-      getState().auth.token,
-    );
-    return resolveDemoData(data, mockNotifications);
-  } catch {
-    return resolveDemoData([], mockNotifications);
-  }
+  return apiRequest<NotificationItem[]>(
+    "/notifications",
+    {},
+    getState().auth.token,
+  );
 });
 
 export const sendTestNotification = createAsyncThunk<
@@ -44,22 +34,6 @@ export const sendTestNotification = createAsyncThunk<
   SendTestNotificationInput,
   { state: StateWithAuth }
 >("notifications/sendTest", async (payload, { getState }) => {
-  if (isDemoMockForced()) {
-    const now = new Date().toISOString();
-    const row: NotificationItem = {
-      id: nextMockId++,
-      channel: payload.channel,
-      event: payload.event,
-      recipient: payload.recipient,
-      subject: payload.subject,
-      message: payload.message,
-      status: "sent",
-      sent_at: now,
-      created_at: now,
-    };
-    mockItems = [row, ...mockItems];
-    return row;
-  }
   return apiRequest<NotificationItem>(
     "/notifications/test",
     { method: "POST", body: JSON.stringify(payload) },

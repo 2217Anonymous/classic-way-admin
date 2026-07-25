@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { Payment, Refund } from "@/lib/types";
-import { isDemoMockForced, mockPayments, mockRefunds, resolveDemoData } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -20,22 +19,12 @@ const initialState: PaymentsState = {
   error: null,
 };
 
-let mockItems: Payment[] = mockPayments.map((item) => ({ ...item }));
-let mockRefundItems: Refund[] = mockRefunds.map((item) => ({ ...item }));
-let nextRefundId = Math.max(0, ...mockRefundItems.map((item) => item.id)) + 1;
-
 export const fetchPayments = createAsyncThunk<
   Payment[],
   void,
   { state: StateWithAuth }
 >("payments/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockItems.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<Payment[]>("/payments", {}, getState().auth.token);
-    return resolveDemoData(data, mockPayments);
-  } catch {
-    return resolveDemoData([], mockPayments);
-  }
+  return apiRequest<Payment[]>("/payments", {}, getState().auth.token);
 });
 
 export const fetchRefunds = createAsyncThunk<
@@ -43,40 +32,14 @@ export const fetchRefunds = createAsyncThunk<
   void,
   { state: StateWithAuth }
 >("payments/fetchRefunds", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockRefundItems.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<Refund[]>("/refunds", {}, getState().auth.token);
-    return resolveDemoData(data, mockRefunds);
-  } catch {
-    return resolveDemoData([], mockRefunds);
-  }
+  return apiRequest<Refund[]>("/refunds", {}, getState().auth.token);
 });
 
 export const markPaymentPaidForOrder = createAsyncThunk<
   Payment,
-  { orderId: number; orderNumber: string; amount: number; provider: Payment["provider"] },
+  { orderId: string; orderNumber: string; amount: number; provider: Payment["provider"] },
   { state: StateWithAuth }
->("payments/markPaid", async ({ orderId, orderNumber, amount, provider }, { getState }) => {
-  if (isDemoMockForced()) {
-    const now = new Date().toISOString();
-    const existingIndex = mockItems.findIndex((item) => item.order_id === orderId);
-    const updated: Payment = {
-      id: existingIndex >= 0 ? mockItems[existingIndex].id : Math.max(0, ...mockItems.map((i) => i.id)) + 1,
-      order_id: orderId,
-      order_number: orderNumber,
-      provider,
-      provider_ref: existingIndex >= 0 ? mockItems[existingIndex].provider_ref : null,
-      amount,
-      status: "paid",
-      captured_at: now,
-      created_at: existingIndex >= 0 ? mockItems[existingIndex].created_at : now,
-    };
-    mockItems =
-      existingIndex >= 0
-        ? mockItems.map((item, i) => (i === existingIndex ? updated : item))
-        : [updated, ...mockItems];
-    return updated;
-  }
+>("payments/markPaid", async ({ orderId }, { getState }) => {
   return apiRequest<Payment>(
     `/orders/${orderId}/payments/mark-paid`,
     { method: "POST" },
@@ -86,23 +49,9 @@ export const markPaymentPaidForOrder = createAsyncThunk<
 
 export const createRefundForOrder = createAsyncThunk<
   Refund,
-  { orderId: number; orderNumber: string; amount: number; reason: string },
+  { orderId: string; orderNumber: string; amount: number; reason: string },
   { state: StateWithAuth }
->("payments/createRefund", async ({ orderId, orderNumber, amount, reason }, { getState }) => {
-  if (isDemoMockForced()) {
-    const refund: Refund = {
-      id: nextRefundId++,
-      payment_id: orderId,
-      order_id: orderId,
-      order_number: orderNumber,
-      amount,
-      reason,
-      status: "processed",
-      created_at: new Date().toISOString(),
-    };
-    mockRefundItems = [refund, ...mockRefundItems];
-    return refund;
-  }
+>("payments/createRefund", async ({ orderId, amount, reason }, { getState }) => {
   return apiRequest<Refund>(
     `/orders/${orderId}/refunds`,
     { method: "POST", body: JSON.stringify({ amount, reason }) },

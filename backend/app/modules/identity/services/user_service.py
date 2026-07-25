@@ -1,3 +1,4 @@
+from uuid import UUID
 from app.core.security import hash_password
 from app.modules.iam.public import IamService
 from app.modules.identity.models.user import User
@@ -14,7 +15,7 @@ class UserService:
     def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
         return self.users.list(skip, limit)
 
-    def get_user(self, user_id: int) -> User:
+    def get_user(self, user_id: UUID) -> User:
         user = self.users.get(user_id)
         if not user:
             raise NotFoundError("User not found")
@@ -33,7 +34,7 @@ class UserService:
             roles=roles,
         )
 
-    def update_user(self, user_id: int, payload: UserUpdate) -> User:
+    def update_user(self, user_id: UUID, payload: UserUpdate) -> User:
         user = self.get_user(user_id)
         changes = payload.model_dump(exclude_unset=True)
 
@@ -46,7 +47,7 @@ class UserService:
             setattr(user, field, value)
         return self.users.save(user)
 
-    def delete_user(self, user_id: int, current_user_id: int) -> None:
+    def delete_user(self, user_id: UUID, current_user_id: UUID) -> None:
         if user_id == current_user_id:
             raise ConflictError("You cannot delete your own account")
         self.users.delete(self.get_user(user_id))

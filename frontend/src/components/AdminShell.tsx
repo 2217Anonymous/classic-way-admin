@@ -42,10 +42,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
-import { toastSuccess } from "@/lib/toast";
-import type { DataSourceMode } from "@/mock";
 import { logout } from "@/store/authSlice";
-import { setDataSourceMode } from "@/store/dataSourceSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 export type AdminNavKey =
@@ -164,10 +161,9 @@ export function AdminShell({
 }) {
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.auth.user);
-  const dataSource = useAppSelector((state) => state.dataSource.mode);
-  const dataRevision = useAppSelector((state) => state.dataSource.revision);
   const pathname = usePathname();
   const [pinned, setPinned] = useState(true);
+  const [pinnedReady, setPinnedReady] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [ecommerceOpen, setEcommerceOpen] = useState(true);
   const [operationsOpen, setOperationsOpen] = useState(true);
@@ -190,11 +186,13 @@ export function AdminShell({
     const saved = localStorage.getItem(SIDEBAR_PIN_KEY);
     if (saved === "0") setPinned(false);
     if (saved === "1") setPinned(true);
+    setPinnedReady(true);
   }, []);
 
   useEffect(() => {
+    if (!pinnedReady) return;
     localStorage.setItem(SIDEBAR_PIN_KEY, pinned ? "1" : "0");
-  }, [pinned]);
+  }, [pinned, pinnedReady]);
 
   useEffect(() => {
     if (isEcommerceActive) setEcommerceOpen(true);
@@ -241,18 +239,6 @@ export function AdminShell({
     } catch {
       // Browser may block fullscreen without gesture/permission.
     }
-  }
-
-  function switchDataSource(mode: DataSourceMode) {
-    if (mode === dataSource) return;
-    dispatch(setDataSourceMode(mode));
-    toastSuccess(
-      dispatch,
-      mode === "mock" ? "Mock data mode" : "SQL data mode",
-      mode === "mock"
-        ? "Admin lists and edits now use demo mock data."
-        : "Admin lists and edits now use the live API / database.",
-    );
   }
 
   const crumbs = useMemo(
@@ -721,34 +707,6 @@ export function AdminShell({
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <div
-              className="data-source-switch"
-              role="group"
-              aria-label="Data source"
-              title="Switch between mock demo data and live SQL API"
-            >
-              <button
-                type="button"
-                className={`data-source-option ${
-                  dataSource === "mock" ? "data-source-option-active" : ""
-                }`}
-                aria-pressed={dataSource === "mock"}
-                onClick={() => switchDataSource("mock")}
-              >
-                Mock
-              </button>
-              <button
-                type="button"
-                className={`data-source-option ${
-                  dataSource === "sql" ? "data-source-option-active" : ""
-                }`}
-                aria-pressed={dataSource === "sql"}
-                onClick={() => switchDataSource("sql")}
-              >
-                SQL
-              </button>
-            </div>
-
             <HeaderIconButton label="Layout">
               <LayoutGrid size={17} />
             </HeaderIconButton>
@@ -847,7 +805,7 @@ export function AdminShell({
             activeNav === "dashboard" ? "py-5 pt-6" : "py-5"
           }`}
         >
-          <div key={`${activeNav}-${dataRevision}`}>{children}</div>
+          <div key={activeNav}>{children}</div>
         </main>
       </div>
 

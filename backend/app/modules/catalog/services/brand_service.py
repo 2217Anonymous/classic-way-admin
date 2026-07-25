@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
@@ -24,7 +25,7 @@ class BrandService:
     def list_brands(self) -> list[Brand]:
         return self.repository.list()
 
-    def get_brand(self, brand_id: int) -> Brand:
+    def get_brand(self, brand_id: UUID) -> Brand:
         brand = self.repository.get(brand_id)
         if not brand:
             raise NotFoundError("Brand not found")
@@ -44,7 +45,7 @@ class BrandService:
             self.repository.rollback()
             raise ConflictError("A brand with this slug already exists") from exc
 
-    def update_brand(self, brand_id: int, payload: BrandUpdate) -> Brand:
+    def update_brand(self, brand_id: UUID, payload: BrandUpdate) -> Brand:
         brand = self.get_brand(brand_id)
         changes = payload.model_dump(exclude_unset=True)
 
@@ -65,7 +66,7 @@ class BrandService:
             self.repository.rollback()
             raise ConflictError("A brand with this slug already exists") from exc
 
-    def delete_brand(self, brand_id: int) -> Brand | None:
+    def delete_brand(self, brand_id: UUID) -> Brand | None:
         """Soft-deactivate when products reference the brand; hard-delete if unused."""
         brand = self.get_brand(brand_id)
         if self.repository.count_products(brand_id) > 0:

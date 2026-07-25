@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -25,7 +26,7 @@ class OrderRepository:
         return list(self.db.scalars(statement).unique().all())
 
     def list_for_customer(
-        self, customer_id: int, status: str | None = None
+        self, customer_id: UUID, status: str | None = None
     ) -> list[Order]:
         statement = (
             select(Order)
@@ -37,7 +38,7 @@ class OrderRepository:
             statement = statement.where(Order.status == status)
         return list(self.db.scalars(statement).unique().all())
 
-    def get(self, order_id: int) -> Order | None:
+    def get(self, order_id: UUID) -> Order | None:
         statement = (
             select(Order).where(Order.id == order_id).options(*self._options())
         )
@@ -78,7 +79,7 @@ class OrderRepository:
         self._expire_collections(entry.order_id)
         return entry
 
-    def _expire_collections(self, order_id: int) -> None:
+    def _expire_collections(self, order_id: UUID) -> None:
         order = self.db.get(Order, order_id)
         if order is not None:
             self.db.expire(order, ["items", "status_history"])

@@ -41,13 +41,13 @@ type FlatTreeRow = CategoryTreeNode & {
   depth: number;
   hasChildren: boolean;
   pathLabel: string;
-  ancestorIds: number[];
+  ancestorIds: string[];
   isLastSibling: boolean;
   parentName: string;
 };
 
 function buildTreeFromItems(items: Category[]): CategoryTreeNode[] {
-  const byId = new Map<number, CategoryTreeNode>();
+  const byId = new Map<string, CategoryTreeNode>();
   for (const item of items) {
     byId.set(item.id, { ...item, children: [] });
   }
@@ -101,7 +101,7 @@ function flattenTree(
   nodes: CategoryTreeNode[],
   depth = 0,
   parentPath = "",
-  ancestorIds: number[] = [],
+  ancestorIds: string[] = [],
   parentName = "—",
 ): FlatTreeRow[] {
   const rows: FlatTreeRow[] = [];
@@ -128,8 +128,8 @@ function flattenTree(
   return rows;
 }
 
-function collectExpandableIds(nodes: CategoryTreeNode[]): number[] {
-  const ids: number[] = [];
+function collectExpandableIds(nodes: CategoryTreeNode[]): string[] {
+  const ids: string[] = [];
   for (const node of nodes) {
     if (node.children.length > 0) {
       ids.push(node.id);
@@ -189,7 +189,7 @@ export function CategoriesPanel() {
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">(
     "all",
   );
@@ -251,7 +251,7 @@ export function CategoriesPanel() {
           result = Number(a.is_active) - Number(b.is_active);
           break;
         case "parent":
-          result = (a.parent_id ?? 0) - (b.parent_id ?? 0);
+          result = String(a.parent_id ?? "").localeCompare(String(b.parent_id ?? ""));
           break;
         case "level":
           result = 0;
@@ -309,7 +309,7 @@ export function CategoriesPanel() {
   const getCategoryId = useCallback((row: FlatTreeRow) => row.id, []);
   const selection = useRowSelection(pagedRows, getCategoryId);
 
-  function toggleCollapse(categoryId: number) {
+  function toggleCollapse(categoryId: string) {
     setCollapsed((current) => {
       const next = new Set(current);
       if (next.has(categoryId)) next.delete(categoryId);

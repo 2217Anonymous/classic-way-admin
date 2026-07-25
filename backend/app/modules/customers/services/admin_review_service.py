@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from pydantic import BaseModel
 
 from app.modules.customers.repositories.customer_repository import CustomerRepository
@@ -28,7 +29,7 @@ class AdminReviewService:
         self,
         *,
         approved: bool | None = None,
-        product_id: int | None = None,
+        product_id: UUID | None = None,
     ) -> list[ReviewResponse]:
         return [
             self._to_response(review)
@@ -38,17 +39,17 @@ class AdminReviewService:
         ]
 
     def moderate(
-        self, review_id: int, payload: ReviewModerationUpdate
+        self, review_id: UUID, payload: ReviewModerationUpdate
     ) -> ReviewResponse:
         review = self._get_or_404(review_id)
         review.is_approved = payload.is_approved
         return self._to_response(self.repository.save(review))
 
-    def delete(self, review_id: int) -> None:
+    def delete(self, review_id: UUID) -> None:
         review = self._get_or_404(review_id)
         self.repository.delete(review)
 
-    def _get_or_404(self, review_id: int):
+    def _get_or_404(self, review_id: UUID):
         review = self.repository.get(review_id)
         if not review:
             raise NotFoundError("Review not found")

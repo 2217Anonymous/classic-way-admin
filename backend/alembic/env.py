@@ -19,6 +19,7 @@ from app.modules.customers.models import (  # noqa: F401
     CompareList,
     CouponUsage,
     Customer,
+    Feedback,
     RefreshToken,
     Review,
     ReviewImage,

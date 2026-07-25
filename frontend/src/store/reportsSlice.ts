@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { ReportSummary } from "@/lib/types";
-import { isDemoMockForced, mockReportSummaries, resolveDemoData } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -23,13 +22,7 @@ export const fetchReports = createAsyncThunk<
   void,
   { state: StateWithAuth }
 >("reports/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockReportSummaries.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<ReportSummary[]>("/reports", {}, getState().auth.token);
-    return resolveDemoData(data, mockReportSummaries);
-  } catch {
-    return resolveDemoData([], mockReportSummaries);
-  }
+  return apiRequest<ReportSummary[]>("/reports", {}, getState().auth.token);
 });
 
 const reportsSlice = createSlice({

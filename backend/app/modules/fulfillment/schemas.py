@@ -1,11 +1,12 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class CourierAccountResponse(BaseModel):
-    id: int
+    id: UUID
     provider: str
     name: str
     is_active: bool
@@ -16,7 +17,7 @@ class CourierAccountResponse(BaseModel):
 
 
 class ShipmentCreateRequest(BaseModel):
-    order_id: int
+    order_id: UUID
     provider: str = Field(default="manual", max_length=30)
 
 
@@ -36,8 +37,8 @@ class ShipmentExceptionRequest(BaseModel):
 
 
 class ShipmentEventResponse(BaseModel):
-    id: int
-    shipment_id: int
+    id: UUID
+    shipment_id: UUID
     status: str
     message: str | None
     event_at: datetime
@@ -47,8 +48,8 @@ class ShipmentEventResponse(BaseModel):
 
 
 class ShipmentResponse(BaseModel):
-    id: int
-    order_id: int
+    id: UUID
+    order_id: UUID
     courier_provider: str
     awb: str | None
     label_url: str | None

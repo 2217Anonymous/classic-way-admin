@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,7 +20,7 @@ class RoleUpdate(BaseModel):
 
 
 class RoleResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     description: str | None
     created_at: datetime

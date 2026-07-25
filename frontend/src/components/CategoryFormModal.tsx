@@ -90,7 +90,7 @@ export function CategoryFormModal({
       name: form.name,
       slug: form.slug || undefined,
       description: form.description || undefined,
-      parent_id: form.parent_id ? Number(form.parent_id) : null,
+      parent_id: form.parent_id ? String(form.parent_id) : null,
       is_active: form.is_active,
       sort_order: Number(form.sort_order) || 0,
     };

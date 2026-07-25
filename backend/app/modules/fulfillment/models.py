@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -13,7 +14,9 @@ class CourierAccount(Base):
 
     __tablename__ = "courier_accounts"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     provider: Mapped[str] = mapped_column(String(30), default="manual")
     name: Mapped[str] = mapped_column(String(120))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -29,9 +32,13 @@ class Shipment(Base):
 
     __tablename__ = "shipments"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    order_id: Mapped[int] = mapped_column(
-        ForeignKey("orders.id", ondelete="CASCADE"), index=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("orders.id", ondelete="CASCADE"),
+        index=True,
     )
     courier_provider: Mapped[str] = mapped_column(String(30), default="manual")
     awb: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
@@ -61,9 +68,13 @@ class ShipmentEvent(Base):
 
     __tablename__ = "shipment_events"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    shipment_id: Mapped[int] = mapped_column(
-        ForeignKey("shipments.id", ondelete="CASCADE"), index=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    shipment_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("shipments.id", ondelete="CASCADE"),
+        index=True,
     )
     status: Mapped[str] = mapped_column(String(30))
     message: Mapped[str | None] = mapped_column(String(255), nullable=True)

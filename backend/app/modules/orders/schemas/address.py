@@ -1,11 +1,12 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class AddressCreate(BaseModel):
-    user_id: int | None = None
-    customer_id: int | None = None
+    user_id: UUID | None = None
+    customer_id: UUID | None = None
     full_name: str = Field(min_length=2, max_length=160)
     phone: str = Field(min_length=6, max_length=40)
     line1: str = Field(min_length=2, max_length=255)
@@ -30,9 +31,9 @@ class AddressUpdate(BaseModel):
 
 
 class AddressResponse(BaseModel):
-    id: int
-    user_id: int | None
-    customer_id: int | None = None
+    id: UUID
+    user_id: UUID | None
+    customer_id: UUID | None = None
     full_name: str
     phone: str
     line1: str

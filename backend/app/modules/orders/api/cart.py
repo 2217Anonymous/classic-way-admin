@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, status
 
 from app.modules.catalog.repositories.product_repository import ProductRepository
@@ -24,22 +25,22 @@ def create_cart(payload: CartCreate, db: DbSession) -> CartResponse:
 
 
 @router.get("/{cart_id}", response_model=CartResponse)
-def get_cart(cart_id: int, db: DbSession) -> CartResponse:
+def get_cart(cart_id: UUID, db: DbSession) -> CartResponse:
     return get_service(db).get_cart(cart_id)
 
 
 @router.post("/{cart_id}/items", response_model=CartResponse)
-def add_cart_item(cart_id: int, payload: CartItemCreate, db: DbSession) -> CartResponse:
+def add_cart_item(cart_id: UUID, payload: CartItemCreate, db: DbSession) -> CartResponse:
     return get_service(db).add_item(cart_id, payload)
 
 
 @router.patch("/{cart_id}/items/{item_id}", response_model=CartResponse)
 def update_cart_item(
-    cart_id: int, item_id: int, payload: CartItemUpdate, db: DbSession
+    cart_id: UUID, item_id: UUID, payload: CartItemUpdate, db: DbSession
 ) -> CartResponse:
     return get_service(db).update_item(cart_id, item_id, payload)
 
 
 @router.delete("/{cart_id}/items/{item_id}", response_model=CartResponse)
-def delete_cart_item(cart_id: int, item_id: int, db: DbSession) -> CartResponse:
+def delete_cart_item(cart_id: UUID, item_id: UUID, db: DbSession) -> CartResponse:
     return get_service(db).delete_item(cart_id, item_id)

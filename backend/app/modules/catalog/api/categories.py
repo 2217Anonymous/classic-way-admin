@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 
@@ -42,7 +43,7 @@ def list_category_tree(
 
 @router.get("/{category_id}", response_model=CategoryResponse)
 def get_category(
-    category_id: int,
+    category_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> Category:
@@ -58,14 +59,14 @@ def create_category(
 
 @router.patch("/{category_id}", response_model=CategoryResponse)
 def update_category(
-    category_id: int, payload: CategoryUpdate, db: DbSession, _: AdminUser
+    category_id: UUID, payload: CategoryUpdate, db: DbSession, _: AdminUser
 ) -> Category:
     return get_service(db).update_category(category_id, payload)
 
 
 @router.post("/{category_id}/image", response_model=CategoryResponse)
 async def upload_category_image(
-    category_id: int,
+    category_id: UUID,
     db: DbSession,
     _: AdminUser,
     file: UploadFile = File(...),
@@ -75,7 +76,7 @@ async def upload_category_image(
 
 @router.delete("/{category_id}", response_model=CategoryDeleteResponse)
 def delete_category(
-    category_id: int, db: DbSession, _: AdminUser
+    category_id: UUID, db: DbSession, _: AdminUser
 ) -> CategoryDeleteResponse:
     deleted_ids = get_service(db).delete_category(category_id)
     return CategoryDeleteResponse(deleted_ids=deleted_ids)

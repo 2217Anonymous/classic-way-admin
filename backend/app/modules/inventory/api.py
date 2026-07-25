@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
@@ -69,6 +70,6 @@ def update_settings(
 
 @router.post("/items/{item_id}/adjust", response_model=InventoryItemResponse)
 def adjust_item(
-    item_id: int, payload: StockAdjustRequest, db: DbSession, _: AdminUser
+    item_id: UUID, payload: StockAdjustRequest, db: DbSession, _: AdminUser
 ) -> InventoryItemResponse:
     return get_service(db).adjust(item_id, payload)

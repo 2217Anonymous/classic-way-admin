@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useState } from "react";
 
 import { toastError, toastSuccess } from "@/lib/toast";
-import { isDemoMockForced } from "@/mock";
 import { setCurrentUser } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { updateUser } from "@/store/usersSlice";
@@ -33,20 +32,6 @@ export function ProfileSettingsPanel() {
     }
 
     setBusy(true);
-
-    if (isDemoMockForced()) {
-      const updated = {
-        ...currentUser,
-        full_name: fullName.trim(),
-        updated_at: new Date().toISOString(),
-      };
-      dispatch(setCurrentUser(updated));
-      setPassword("");
-      setConfirmPassword("");
-      setBusy(false);
-      toastSuccess(dispatch, "Profile updated", "Your profile settings were saved.");
-      return;
-    }
 
     const changes: {
       full_name: string;

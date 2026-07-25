@@ -4,9 +4,9 @@ import { useCallback, useMemo, useState } from "react";
 
 export function useRowSelection<T>(
   rows: T[],
-  getId: (row: T) => number,
+  getId: (row: T) => string,
 ) {
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const pageIds = useMemo(() => rows.map(getId), [rows, getId]);
   const allSelected =
@@ -14,7 +14,7 @@ export function useRowSelection<T>(
   const someSelected =
     pageIds.some((id) => selected.has(id)) && !allSelected;
 
-  const toggleOne = useCallback((id: number) => {
+  const toggleOne = useCallback((id: string) => {
     setSelected((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -42,7 +42,7 @@ export function useRowSelection<T>(
     selected,
     selectedCount: selected.size,
     selectedIds: Array.from(selected),
-    isSelected: (id: number) => selected.has(id),
+    isSelected: (id: string) => selected.has(id),
     allSelected,
     someSelected,
     toggleOne,

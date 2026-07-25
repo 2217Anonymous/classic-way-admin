@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,7 +20,7 @@ class AttributeDefinitionUpdate(BaseModel):
 
 
 class AttributeDefinitionResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     values: list[Any] = Field(default_factory=list)
     sort_order: int

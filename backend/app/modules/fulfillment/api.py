@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
@@ -51,7 +52,7 @@ def create_shipment(
 
 @router.post("/{shipment_id}/pickup", response_model=ShipmentResponse)
 def schedule_pickup(
-    shipment_id: int,
+    shipment_id: UUID,
     db: DbSession,
     _: AdminUser,
     payload: PickupScheduleRequest | None = None,
@@ -61,21 +62,21 @@ def schedule_pickup(
 
 @router.post("/{shipment_id}/events", response_model=ShipmentResponse)
 def add_shipment_event(
-    shipment_id: int, payload: ShipmentEventCreate, db: DbSession, _: AdminUser
+    shipment_id: UUID, payload: ShipmentEventCreate, db: DbSession, _: AdminUser
 ) -> ShipmentResponse:
     return get_service(db).add_event(shipment_id, payload)
 
 
 @router.post("/{shipment_id}/exception", response_model=ShipmentResponse)
 def mark_shipment_exception(
-    shipment_id: int, payload: ShipmentExceptionRequest, db: DbSession, _: AdminUser
+    shipment_id: UUID, payload: ShipmentExceptionRequest, db: DbSession, _: AdminUser
 ) -> ShipmentResponse:
     return get_service(db).mark_exception(shipment_id, payload)
 
 
 @router.get("/{shipment_id}/timeline", response_model=ShipmentResponse)
 def get_shipment_timeline(
-    shipment_id: int,
+    shipment_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> ShipmentResponse:

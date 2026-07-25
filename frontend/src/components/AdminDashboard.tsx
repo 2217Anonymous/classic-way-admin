@@ -226,13 +226,12 @@ export function AdminDashboard() {
   const usersState = useAppSelector((state) => state.users);
   const rolesState = useAppSelector((state) => state.roles);
   const currentUser = useAppSelector((state) => state.auth.user);
-  const dataRevision = useAppSelector((state) => state.dataSource.revision);
   const { tab, setTab } = useAdminTabState("dashboard");
 
   useEffect(() => {
     void dispatch(fetchUsers());
     void dispatch(fetchRoles());
-  }, [dispatch, dataRevision]);
+  }, [dispatch]);
 
   return (
     <AdminNavProvider onTabChange={setTab}>
@@ -585,7 +584,7 @@ function UserFormModal({
     email: "",
     password: "",
     is_active: true,
-    role_ids: [] as number[],
+    role_ids: [] as string[],
   });
 
   useEffect(() => {
@@ -651,7 +650,7 @@ function UserFormModal({
     }
   }
 
-  function toggleRole(roleId: number) {
+  function toggleRole(roleId: string) {
     setForm((current) => ({
       ...current,
       role_ids: current.role_ids.includes(roleId)

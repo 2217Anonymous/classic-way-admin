@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,7 +18,7 @@ class AttributeRepository:
         )
         return list(self.db.scalars(statement).all())
 
-    def get(self, attribute_id: int) -> AttributeDefinition | None:
+    def get(self, attribute_id: UUID) -> AttributeDefinition | None:
         return self.db.get(AttributeDefinition, attribute_id)
 
     def get_by_name(self, name: str) -> AttributeDefinition | None:

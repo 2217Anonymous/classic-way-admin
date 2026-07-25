@@ -11,7 +11,7 @@
 
 - Tabbed dashboard shell (`/?tab=...`) plus product CRUD routes
 - Optional Classic Way mini-store at `/shop`
-- Data source toggle: Mock vs live API (`NEXT_PUBLIC_DEMO_MOCK`)
+- Data source: live API only (PostgreSQL via admin backend)
 
 ## Shopping
 

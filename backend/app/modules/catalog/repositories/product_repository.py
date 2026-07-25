@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -30,7 +31,7 @@ class ProductRepository:
         )
         return list(self.db.scalars(statement).unique().all())
 
-    def get(self, product_id: int) -> Product | None:
+    def get(self, product_id: UUID) -> Product | None:
         statement = (
             select(Product)
             .where(Product.id == product_id)
@@ -39,7 +40,12 @@ class ProductRepository:
         return self.db.scalars(statement).unique().first()
 
     def get_by_slug(self, slug: str) -> Product | None:
-        return self.db.scalar(select(Product).where(Product.slug == slug))
+        statement = (
+            select(Product)
+            .where(Product.slug == slug)
+            .options(*self._options())
+        )
+        return self.db.scalars(statement).unique().first()
 
     def get_by_sku(self, sku: str) -> Product | None:
         return self.db.scalar(select(Product).where(Product.sku == sku))
@@ -93,7 +99,7 @@ class ProductRepository:
         self._expire_product_media(media.product_id)
         return media
 
-    def get_media(self, media_id: int) -> ProductMedia | None:
+    def get_media(self, media_id: UUID) -> ProductMedia | None:
         return self.db.get(ProductMedia, media_id)
 
     def delete_media(self, media: ProductMedia) -> None:
@@ -105,12 +111,12 @@ class ProductRepository:
     def rollback(self) -> None:
         self.db.rollback()
 
-    def _expire_product_media(self, product_id: int) -> None:
+    def _expire_product_media(self, product_id: UUID) -> None:
         product = self.db.get(Product, product_id)
         if product is not None:
             self.db.expire(product, ["media"])
 
-    def _expire_collections(self, product_id: int) -> None:
+    def _expire_collections(self, product_id: UUID) -> None:
         product = self.db.get(Product, product_id)
         if product is not None:
             self.db.expire(product, ["media", "attributes", "variants"])

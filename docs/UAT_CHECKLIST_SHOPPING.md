@@ -4,7 +4,7 @@
 **APIs:** Admin http://localhost:8000/docs · Shopping http://localhost:8001/docs  
 **Date:** __________ · **Tester:** __________ · **Build:** __________
 
-Set `NEXT_PUBLIC_DEMO_MOCK=off` for admin live SQL mode.
+Admin and shopping use PostgreSQL only (no mock data mode).
 
 ---
 

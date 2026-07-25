@@ -17,13 +17,42 @@ import {
 
 import { mediaUrl } from "@/lib/api";
 import { toastError } from "@/lib/toast";
-import type { Product } from "@/lib/types";
-import {
-  mockRatingSummary,
-  reviewsForProduct,
-} from "@/mock";
-import { useAppDispatch } from "@/store/hooks";
+import type { AdminReview, Product } from "@/lib/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchProduct } from "@/store/productsSlice";
+import { fetchReviews } from "@/store/reviewsSlice";
+
+const RATING_TONES = ["#0ab39c", "#16a34a", "#3577f1", "#f7b84b", "#f06548"];
+
+function formatReviewDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(undefined, {
+    year: "2-digit",
+    month: "short",
+    day: "2-digit",
+  });
+}
+
+function buildRatingSummary(reviews: AdminReview[]) {
+  const distribution = [5, 4, 3, 2, 1].map((stars, index) => ({
+    stars,
+    count: reviews.filter((item) => Math.round(item.rating) === stars).length,
+    tone: RATING_TONES[index],
+  }));
+  const average =
+    reviews.length === 0
+      ? 0
+      : Math.round(
+          (reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length) *
+            10,
+        ) / 10;
+  return {
+    average,
+    totalLabel: reviews.length.toLocaleString(),
+    distribution,
+  };
+}
 
 function formatPrice(value: string | number | null | undefined) {
   const amount = Number(value ?? 0);
@@ -70,9 +99,10 @@ function colorSwatch(value: string) {
   return map[key] ?? "#cbd5e1";
 }
 
-export function ProductDetailsPage({ productId }: { productId: number }) {
+export function ProductDetailsPage({ productId }: { productId: string }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const allReviews = useAppSelector((state) => state.reviews.items);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -83,6 +113,7 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    void dispatch(fetchReviews());
     void dispatch(fetchProduct(productId)).then((result) => {
       if (cancelled) return;
       setLoading(false);
@@ -138,9 +169,10 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
     [product],
   );
   const reviews = useMemo(
-    () => (product ? reviewsForProduct(product.id) : []),
-    [product],
+    () => (product ? allReviews.filter((item) => item.product_id === product.id) : []),
+    [allReviews, product],
   );
+  const ratingSummary = useMemo(() => buildRatingSummary(reviews), [reviews]);
 
   if (loading || !product) {
     return (
@@ -156,7 +188,7 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
   const estimatedOrders = Math.max(0, Math.round(Number(product.stock) * 1.8));
   const estimatedRevenue = Number(product.price) * Math.max(estimatedOrders, 1);
   const maxDist = Math.max(
-    ...mockRatingSummary.distribution.map((item) => item.count),
+    ...ratingSummary.distribution.map((item) => item.count),
     1,
   );
 
@@ -292,7 +324,7 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
                   ))}
                 </div>
                 <span className="text-sm text-[var(--muted)]">
-                  ( {mockRatingSummary.totalLabel} Customer Review )
+                  ( {ratingSummary.totalLabel} Customer Review )
                 </span>
               </div>
             </div>
@@ -450,7 +482,7 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
                     <SpecRow label="SKU" value={product.sku || "—"} />
                     <SpecRow
                       label="Weight"
-                      value={`${120 + (product.id % 40)} Gram`}
+                      value={`${120 + (String(product.id).charCodeAt(0) % 40)} Gram`}
                     />
                   </tbody>
                 </table>
@@ -512,16 +544,16 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
                 ))}
               </div>
               <span className="text-sm font-semibold">
-                {mockRatingSummary.average} out of 5
+                {ratingSummary.average} out of 5
               </span>
               <span className="text-sm text-[var(--muted)]">
-                Total {mockRatingSummary.totalLabel} reviews
+                Total {ratingSummary.totalLabel} reviews
               </span>
             </div>
 
             <div className="mt-5 grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
               <div className="space-y-2.5">
-                {mockRatingSummary.distribution.map((item) => (
+                {ratingSummary.distribution.map((item) => (
                   <div key={item.stars} className="flex items-center gap-2 text-xs">
                     <span className="w-12 shrink-0 text-[var(--muted)]">
                       {item.stars} star
@@ -543,7 +575,12 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
               </div>
 
               <div className="space-y-0">
-                {reviews.map((review, index) => (
+                {reviews.length === 0 ? (
+                  <p className="py-4 text-sm text-[var(--muted)]">
+                    No reviews yet for this product.
+                  </p>
+                ) : (
+                  reviews.map((review, index) => (
                   <article
                     key={review.id}
                     className={`py-4 ${
@@ -555,29 +592,20 @@ export function ProductDetailsPage({ productId }: { productId: number }) {
                       {review.rating.toFixed(1)}
                     </div>
                     <p className="text-sm leading-relaxed text-[var(--muted)]">
-                      {review.comment}
+                      {review.body || review.title || "No comment"}
                     </p>
-                    {review.images.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {review.images.map((src) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            key={src}
-                            src={src}
-                            alt=""
-                            className="size-12 object-cover border border-[var(--card-border)]"
-                          />
-                        ))}
-                      </div>
-                    )}
                     <p className="mt-3 text-sm">
                       <span className="font-semibold text-[var(--foreground)]">
-                        {review.author}
+                        {review.customer_name || "Customer"}
                       </span>
-                      <span className="text-[var(--muted)]"> · {review.date}</span>
+                      <span className="text-[var(--muted)]">
+                        {" "}
+                        · {formatReviewDate(review.created_at)}
+                      </span>
                     </p>
                   </article>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 
@@ -32,7 +33,7 @@ def list_customers(
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
 def get_customer(
-    customer_id: int,
+    customer_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> CustomerResponse:
@@ -41,7 +42,7 @@ def get_customer(
 
 @router.patch("/{customer_id}/status", response_model=CustomerResponse)
 def update_customer_status(
-    customer_id: int,
+    customer_id: UUID,
     payload: CustomerStatusUpdate,
     db: DbSession,
     _: AdminUser,

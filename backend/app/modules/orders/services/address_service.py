@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.schemas.address import (
     AddressCreate,
@@ -26,13 +27,13 @@ class AddressService:
     def __init__(self, repository: AddressRepository):
         self.repository = repository
 
-    def list_addresses(self, user_id: int | None = None) -> list[AddressResponse]:
+    def list_addresses(self, user_id: UUID | None = None) -> list[AddressResponse]:
         return [
             AddressResponse.model_validate(row)
             for row in self.repository.list(user_id)
         ]
 
-    def get_address(self, address_id: int) -> AddressResponse:
+    def get_address(self, address_id: UUID) -> AddressResponse:
         return AddressResponse.model_validate(self._get_or_404(address_id))
 
     def create_address(self, payload: AddressCreate) -> AddressResponse:
@@ -54,7 +55,7 @@ class AddressService:
         return AddressResponse.model_validate(row)
 
     def update_address(
-        self, address_id: int, payload: AddressUpdate
+        self, address_id: UUID, payload: AddressUpdate
     ) -> AddressResponse:
         row = self._get_or_404(address_id)
         changes = payload.model_dump(exclude_unset=True)
@@ -73,11 +74,11 @@ class AddressService:
         row = self.repository.save(row)
         return AddressResponse.model_validate(row)
 
-    def delete_address(self, address_id: int) -> None:
+    def delete_address(self, address_id: UUID) -> None:
         row = self._get_or_404(address_id)
         self.repository.delete(row)
 
-    def _get_or_404(self, address_id: int):
+    def _get_or_404(self, address_id: UUID):
         row = self.repository.get(address_id)
         if not row:
             raise NotFoundError("Address not found")

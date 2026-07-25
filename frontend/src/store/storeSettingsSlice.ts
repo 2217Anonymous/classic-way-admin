@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { StoreSettings, StoreSettingsInput } from "@/lib/types";
-import { isDemoMockForced, mockStoreSettings } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -20,23 +19,16 @@ const initialState: StoreSettingsState = {
   error: null,
 };
 
-let mockDraft: StoreSettings = { ...mockStoreSettings };
-
 export const fetchStoreSettings = createAsyncThunk<
   StoreSettings,
   void,
   { state: StateWithAuth }
 >("storeSettings/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return { ...mockDraft };
-  try {
-    return await apiRequest<StoreSettings>(
-      "/store-settings",
-      {},
-      getState().auth.token,
-    );
-  } catch {
-    return { ...mockDraft };
-  }
+  return apiRequest<StoreSettings>(
+    "/store-settings",
+    {},
+    getState().auth.token,
+  );
 });
 
 export const updateStoreSettings = createAsyncThunk<
@@ -44,15 +36,6 @@ export const updateStoreSettings = createAsyncThunk<
   StoreSettingsInput,
   { state: StateWithAuth }
 >("storeSettings/update", async (payload, { getState }) => {
-  if (isDemoMockForced()) {
-    mockDraft = {
-      ...mockDraft,
-      ...payload,
-      store_name: payload.store_name,
-      updated_at: new Date().toISOString(),
-    };
-    return { ...mockDraft };
-  }
   return apiRequest<StoreSettings>(
     "/store-settings",
     { method: "PUT", body: JSON.stringify(payload) },

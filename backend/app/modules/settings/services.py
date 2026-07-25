@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 
 from app.modules.settings.repositories import (
@@ -98,7 +99,7 @@ class TaxRuleService:
             self.repository.rollback()
             raise ConflictError("A tax rule with this code already exists") from exc
 
-    def update_rule(self, tax_id: int, payload: TaxRuleUpdate) -> TaxRuleResponse:
+    def update_rule(self, tax_id: UUID, payload: TaxRuleUpdate) -> TaxRuleResponse:
         row = self.repository.get(tax_id)
         if not row:
             raise NotFoundError("Tax rule not found")
@@ -131,7 +132,7 @@ class TaxRuleService:
             self.repository.rollback()
             raise ConflictError("A tax rule with this code already exists") from exc
 
-    def delete_rule(self, tax_id: int) -> None:
+    def delete_rule(self, tax_id: UUID) -> None:
         row = self.repository.get(tax_id)
         if not row:
             raise NotFoundError("Tax rule not found")
@@ -171,7 +172,7 @@ class CouponService:
             self.repository.rollback()
             raise ConflictError("A coupon with this code already exists") from exc
 
-    def update_coupon(self, coupon_id: int, payload: CouponUpdate) -> CouponResponse:
+    def update_coupon(self, coupon_id: UUID, payload: CouponUpdate) -> CouponResponse:
         row = self.repository.get(coupon_id)
         if not row:
             raise NotFoundError("Coupon not found")
@@ -210,7 +211,7 @@ class CouponService:
             self.repository.rollback()
             raise ConflictError("A coupon with this code already exists") from exc
 
-    def delete_coupon(self, coupon_id: int) -> None:
+    def delete_coupon(self, coupon_id: UUID) -> None:
         row = self.repository.get(coupon_id)
         if not row:
             raise NotFoundError("Coupon not found")

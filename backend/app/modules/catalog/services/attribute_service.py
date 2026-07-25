@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 
 from app.modules.catalog.repositories.attribute_repository import AttributeRepository
@@ -21,7 +22,7 @@ class AttributeService:
             for item in self.repository.list()
         ]
 
-    def get_attribute(self, attribute_id: int) -> AttributeDefinitionResponse:
+    def get_attribute(self, attribute_id: UUID) -> AttributeDefinitionResponse:
         row = self.repository.get(attribute_id)
         if not row:
             raise NotFoundError("Attribute not found")
@@ -49,7 +50,7 @@ class AttributeService:
             raise ConflictError("An attribute with this name already exists") from exc
 
     def update_attribute(
-        self, attribute_id: int, payload: AttributeDefinitionUpdate
+        self, attribute_id: UUID, payload: AttributeDefinitionUpdate
     ) -> AttributeDefinitionResponse:
         row = self.repository.get(attribute_id)
         if not row:
@@ -79,7 +80,7 @@ class AttributeService:
             self.repository.rollback()
             raise ConflictError("An attribute with this name already exists") from exc
 
-    def delete_attribute(self, attribute_id: int) -> None:
+    def delete_attribute(self, attribute_id: UUID) -> None:
         row = self.repository.get(attribute_id)
         if not row:
             raise NotFoundError("Attribute not found")

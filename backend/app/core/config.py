@@ -17,10 +17,10 @@ class Settings(BaseSettings):
     database_url: str | None = None
 
     postgres_host: str = "localhost"
-    postgres_port: int = 5432
-    postgres_db: str = "valaiyagam"
-    postgres_user: str = "valaiyagam"
-    postgres_password: str = "valaiyagam"
+    postgres_port: int = 5434
+    postgres_db: str = "classic_way"
+    postgres_user: str = "classic_way"
+    postgres_password: str = "classic_way"
 
     initial_admin_email: EmailStr = "admin@example.com"
     initial_admin_password: str = "ChangeMe123!"

@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.modules.iam.constants import DEFAULT_ROLES, VIEWER_ROLE
@@ -14,7 +15,7 @@ class IamService:
 
     def resolve_roles(
         self,
-        role_ids: list[int],
+        role_ids: list[UUID],
         *,
         default_to_viewer: bool = False,
     ) -> list[Role]:

@@ -1,3 +1,4 @@
+from uuid import UUID
 from app.modules.iam.constants import DEFAULT_ROLES
 from app.modules.iam.models.role import Role
 from app.modules.iam.repositories.role_repository import RoleRepository
@@ -18,7 +19,7 @@ class RoleService:
             raise ConflictError("A role with this name already exists")
         return self.repository.create(name, payload.description)
 
-    def update_role(self, role_id: int, payload: RoleUpdate) -> Role:
+    def update_role(self, role_id: UUID, payload: RoleUpdate) -> Role:
         role = self.repository.get(role_id)
         if not role:
             raise NotFoundError("Role not found")
@@ -34,7 +35,7 @@ class RoleService:
             changes["name"] = name
         return self.repository.update(role, changes)
 
-    def delete_role(self, role_id: int) -> None:
+    def delete_role(self, role_id: UUID) -> None:
         role = self.repository.get(role_id)
         if not role:
             raise NotFoundError("Role not found")

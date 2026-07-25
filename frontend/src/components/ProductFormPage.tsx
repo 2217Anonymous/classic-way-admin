@@ -202,13 +202,13 @@ function toLocalDateTimeValue(value: string | null | undefined) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export function ProductFormPage({ productId }: { productId?: number }) {
+export function ProductFormPage({ productId }: { productId?: string }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const categories = useAppSelector((state) => state.categories.items);
   const brands = useAppSelector((state) => state.brands.items);
   const catalogAttributes = useAppSelector((state) => state.attributes.items);
-  const editing = typeof productId === "number";
+  const editing = typeof productId === "string";
   const [busy, setBusy] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(editing);
   const [liveProduct, setLiveProduct] = useState<Product | null>(null);
@@ -249,7 +249,7 @@ export function ProductFormPage({ productId }: { productId?: number }) {
         [...product.media]
           .sort((a, b) => {
             if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-            return a.sort_order - b.sort_order || a.id - b.id;
+            return a.sort_order - b.sort_order || String(a.id).localeCompare(String(b.id));
           })
           .map((media) => ({
             key: `saved-${media.id}`,
@@ -329,7 +329,7 @@ export function ProductFormPage({ productId }: { productId?: number }) {
       const saved = [...product.media]
         .sort((a, b) => {
           if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-          return a.sort_order - b.sort_order || a.id - b.id;
+          return a.sort_order - b.sort_order || String(a.id).localeCompare(String(b.id));
         })
         .map((media) => ({
           key: `saved-${media.id}`,
@@ -418,8 +418,8 @@ export function ProductFormPage({ productId }: { productId?: number }) {
       published_at: form.published_at
         ? new Date(form.published_at).toISOString()
         : null,
-      category_id: form.category_id ? Number(form.category_id) : null,
-      brand_id: form.brand_id ? Number(form.brand_id) : null,
+      category_id: form.category_id ? String(form.category_id) : null,
+      brand_id: form.brand_id ? String(form.brand_id) : null,
       is_published: form.is_published,
       is_active: form.is_active,
       is_featured: form.is_featured,
@@ -471,7 +471,7 @@ export function ProductFormPage({ productId }: { productId?: number }) {
 
       let working = saved;
       let uploadFailed = 0;
-      const orderedMediaIds: number[] = [];
+      const orderedMediaIds: string[] = [];
 
       for (const item of galleryItems) {
         if (item.kind === "saved") {
@@ -490,9 +490,9 @@ export function ProductFormPage({ productId }: { productId?: number }) {
           continue;
         }
         working = uploadResult.payload;
-        const uploaded = working.media
-          .filter((media) => !orderedMediaIds.includes(media.id))
-          .sort((a, b) => b.id - a.id)[0];
+        const uploaded = working.media.find(
+          (media) => !orderedMediaIds.includes(media.id),
+        );
         if (uploaded) orderedMediaIds.push(uploaded.id);
       }
 
@@ -554,7 +554,7 @@ export function ProductFormPage({ productId }: { productId?: number }) {
     }
   }
 
-  async function makePrimary(mediaId: number) {
+  async function makePrimary(mediaId: string) {
     if (!liveProduct) return;
     const result = await dispatch(
       setPrimaryProductMedia({ productId: liveProduct.id, mediaId }),
@@ -868,7 +868,7 @@ export function ProductFormPage({ productId }: { productId?: number }) {
                 >
                   <option value="">No brand</option>
                   {brands
-                    .filter((brand) => brand.is_active || brand.id === Number(form.brand_id))
+                    .filter((brand) => brand.is_active || brand.id === String(form.brand_id))
                     .map((brand) => (
                       <option key={brand.id} value={brand.id}>
                         {brand.name}

@@ -1,10 +1,11 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class InventorySettingsResponse(BaseModel):
-    id: int
+    id: UUID
     low_stock_threshold: int
     created_at: datetime
     updated_at: datetime
@@ -17,9 +18,9 @@ class InventorySettingsUpdate(BaseModel):
 
 
 class InventoryItemResponse(BaseModel):
-    id: int
-    product_id: int | None
-    variant_id: int | None
+    id: UUID
+    product_id: UUID | None
+    variant_id: UUID | None
     sku: str | None
     quantity: int
     reserved: int
@@ -38,8 +39,8 @@ class StockAdjustRequest(BaseModel):
 
 
 class StockMovementResponse(BaseModel):
-    id: int
-    inventory_item_id: int
+    id: UUID
+    inventory_item_id: UUID
     delta: int
     reason: str
     reference: str | None

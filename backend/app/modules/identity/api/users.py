@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response, status
 
@@ -30,7 +31,7 @@ def list_users(
 
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(
-    user_id: int,
+    user_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> User:
@@ -44,14 +45,14 @@ def create_user(payload: UserCreate, db: DbSession, _: AdminUser) -> User:
 
 @router.patch("/{user_id}", response_model=UserResponse)
 def update_user(
-    user_id: int, payload: UserUpdate, db: DbSession, _: AdminUser
+    user_id: UUID, payload: UserUpdate, db: DbSession, _: AdminUser
 ) -> User:
     return get_service(db).update_user(user_id, payload)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
-    user_id: int, db: DbSession, current_user: CurrentUser, _: AdminUser
+    user_id: UUID, db: DbSession, current_user: CurrentUser, _: AdminUser
 ) -> Response:
     get_service(db).delete_user(user_id, current_user.id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

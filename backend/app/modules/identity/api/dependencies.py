@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 import jwt
 from fastapi import Depends
@@ -22,7 +23,7 @@ def get_current_user(
 ) -> User:
     try:
         payload = decode_access_token(token)
-        user_id = int(payload.get("sub", ""))
+        user_id = UUID(payload.get("sub", ""))
         if payload.get("type") != "access":
             raise ValueError
     except (jwt.PyJWTError, TypeError, ValueError):

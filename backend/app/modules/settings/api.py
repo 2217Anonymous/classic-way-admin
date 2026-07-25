@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
@@ -78,13 +79,13 @@ def create_tax_rule(
 
 @router.patch("/tax-rules/{tax_id}", response_model=TaxRuleResponse)
 def update_tax_rule(
-    tax_id: int, payload: TaxRuleUpdate, db: DbSession, _: AdminUser
+    tax_id: UUID, payload: TaxRuleUpdate, db: DbSession, _: AdminUser
 ) -> TaxRuleResponse:
     return get_tax_service(db).update_rule(tax_id, payload)
 
 
 @router.delete("/tax-rules/{tax_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_tax_rule(tax_id: int, db: DbSession, _: AdminUser) -> None:
+def delete_tax_rule(tax_id: UUID, db: DbSession, _: AdminUser) -> None:
     get_tax_service(db).delete_rule(tax_id)
 
 
@@ -109,11 +110,11 @@ def create_coupon(
 
 @router.patch("/coupons/{coupon_id}", response_model=CouponResponse)
 def update_coupon(
-    coupon_id: int, payload: CouponUpdate, db: DbSession, _: AdminUser
+    coupon_id: UUID, payload: CouponUpdate, db: DbSession, _: AdminUser
 ) -> CouponResponse:
     return get_coupon_service(db).update_coupon(coupon_id, payload)
 
 
 @router.delete("/coupons/{coupon_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_coupon(coupon_id: int, db: DbSession, _: AdminUser) -> None:
+def delete_coupon(coupon_id: UUID, db: DbSession, _: AdminUser) -> None:
     get_coupon_service(db).delete_coupon(coupon_id)

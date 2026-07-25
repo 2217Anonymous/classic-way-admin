@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from uuid import UUID
 from decimal import Decimal
 from pathlib import Path
 
@@ -61,7 +62,7 @@ class ProductService:
     def list_products(self) -> list[ProductResponse]:
         return [self._to_response(product) for product in self.repository.list()]
 
-    def get_product(self, product_id: int) -> ProductResponse:
+    def get_product(self, product_id: UUID) -> ProductResponse:
         product = self.repository.get(product_id)
         if not product:
             raise NotFoundError("Product not found")
@@ -115,7 +116,7 @@ class ProductService:
             raise ConflictError("Product slug, SKU, or variant SKU already exists") from exc
 
     def update_product(
-        self, product_id: int, payload: ProductUpdate
+        self, product_id: UUID, payload: ProductUpdate
     ) -> ProductResponse:
         product = self.repository.get(product_id)
         if not product:
@@ -202,7 +203,7 @@ class ProductService:
             self.repository.rollback()
             raise ConflictError("Product slug, SKU, or variant SKU already exists") from exc
 
-    def delete_product(self, product_id: int) -> None:
+    def delete_product(self, product_id: UUID) -> None:
         product = self.repository.get(product_id)
         if not product:
             raise NotFoundError("Product not found")
@@ -212,7 +213,7 @@ class ProductService:
             self._delete_image_file(image_url)
 
     async def upload_media(
-        self, product_id: int, upload: UploadFile, alt_text: str | None = None
+        self, product_id: UUID, upload: UploadFile, alt_text: str | None = None
     ) -> ProductResponse:
         product = self.repository.get(product_id)
         if not product:
@@ -246,7 +247,7 @@ class ProductService:
         refreshed = self.repository.get(product.id)
         return self._to_response(refreshed or product)
 
-    def delete_media(self, product_id: int, media_id: int) -> ProductResponse:
+    def delete_media(self, product_id: UUID, media_id: UUID) -> ProductResponse:
         product = self.repository.get(product_id)
         if not product:
             raise NotFoundError("Product not found")
@@ -267,7 +268,7 @@ class ProductService:
             raise NotFoundError("Product not found")
         return self._to_response(refreshed)
 
-    def set_primary_media(self, product_id: int, media_id: int) -> ProductResponse:
+    def set_primary_media(self, product_id: UUID, media_id: UUID) -> ProductResponse:
         product = self.repository.get(product_id)
         if not product:
             raise NotFoundError("Product not found")
@@ -279,7 +280,7 @@ class ProductService:
         saved = self.repository.save(product)
         return self._to_response(saved)
 
-    def reorder_media(self, product_id: int, media_ids: list[int]) -> ProductResponse:
+    def reorder_media(self, product_id: UUID, media_ids: list[UUID]) -> ProductResponse:
         product = self.repository.get(product_id)
         if not product:
             raise NotFoundError("Product not found")
@@ -395,23 +396,23 @@ class ProductService:
             deleted_at=getattr(product, "deleted_at", None),
         )
 
-    def _ensure_unique_slug(self, slug: str, exclude_id: int | None = None) -> None:
+    def _ensure_unique_slug(self, slug: str, exclude_id: UUID | None = None) -> None:
         existing = self.repository.get_by_slug(slug)
         if existing and existing.id != exclude_id:
             raise ConflictError("A product with this slug already exists")
 
-    def _ensure_unique_sku(self, sku: str, exclude_id: int | None = None) -> None:
+    def _ensure_unique_sku(self, sku: str, exclude_id: UUID | None = None) -> None:
         existing = self.repository.get_by_sku(sku)
         if existing and existing.id != exclude_id:
             raise ConflictError("A product with this SKU already exists")
 
-    def _validate_category(self, category_id: int | None) -> None:
+    def _validate_category(self, category_id: UUID | None) -> None:
         if category_id is None:
             return
         if not self.category_repository.get(category_id):
             raise NotFoundError("Category not found")
 
-    def _validate_brand(self, brand_id: int | None) -> None:
+    def _validate_brand(self, brand_id: UUID | None) -> None:
         if brand_id is None:
             return
         if not self.brand_repository or not self.brand_repository.get(brand_id):
@@ -447,7 +448,7 @@ class ProductService:
     def _validate_variants(
         self,
         variants: list[ProductVariantInput],
-        exclude_product_id: int | None = None,
+        exclude_product_id: UUID | None = None,
     ) -> None:
         skus: set[str] = set()
         for item in variants:

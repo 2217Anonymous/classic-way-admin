@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from decimal import Decimal
 
@@ -10,6 +11,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    Uuid,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -22,9 +24,13 @@ class Payment(Base):
 
     __tablename__ = "payments"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    order_id: Mapped[int] = mapped_column(
-        ForeignKey("orders.id", ondelete="CASCADE"), index=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("orders.id", ondelete="CASCADE"),
+        index=True,
     )
     provider: Mapped[str] = mapped_column(String(30), default="razorpay")
     provider_order_id: Mapped[str | None] = mapped_column(
@@ -56,9 +62,14 @@ class PaymentEvent(Base):
 
     __tablename__ = "payment_events"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    payment_id: Mapped[int | None] = mapped_column(
-        ForeignKey("payments.id", ondelete="SET NULL"), nullable=True, index=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    payment_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("payments.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     event_id: Mapped[str] = mapped_column(String(120), unique=True, index=True)
     event_type: Mapped[str] = mapped_column(String(60))
@@ -74,12 +85,18 @@ class Refund(Base):
 
     __tablename__ = "refunds"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    payment_id: Mapped[int] = mapped_column(
-        ForeignKey("payments.id", ondelete="CASCADE"), index=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    order_id: Mapped[int] = mapped_column(
-        ForeignKey("orders.id", ondelete="CASCADE"), index=True
+    payment_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("payments.id", ondelete="CASCADE"),
+        index=True,
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("orders.id", ondelete="CASCADE"),
+        index=True,
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     reason: Mapped[str | None] = mapped_column(String(255), nullable=True)

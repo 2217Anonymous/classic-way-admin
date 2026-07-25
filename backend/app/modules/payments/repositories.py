@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,7 +15,7 @@ class PaymentRepository:
         statement = select(Payment).order_by(Payment.created_at.desc())
         return list(self.db.scalars(statement).all())
 
-    def get(self, payment_id: int) -> Payment | None:
+    def get(self, payment_id: UUID) -> Payment | None:
         return self.db.get(Payment, payment_id)
 
     def get_by_provider_order_id(self, provider_order_id: str) -> Payment | None:
@@ -22,7 +23,7 @@ class PaymentRepository:
             select(Payment).where(Payment.provider_order_id == provider_order_id)
         )
 
-    def get_for_order(self, order_id: int) -> list[Payment]:
+    def get_for_order(self, order_id: UUID) -> list[Payment]:
         statement = (
             select(Payment)
             .where(Payment.order_id == order_id)
@@ -65,7 +66,7 @@ class RefundRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def list_for_payment(self, payment_id: int) -> list[Refund]:
+    def list_for_payment(self, payment_id: UUID) -> list[Refund]:
         statement = (
             select(Refund)
             .where(Refund.payment_id == payment_id)

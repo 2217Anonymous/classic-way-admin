@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart } = useAppSelector((state) => state.cart);
   const { items: savedAddresses } = useAppSelector((state) => state.addresses);
-  const [selectedAddressId, setSelectedAddressId] = useState<number | "new">("new");
+  const [selectedAddressId, setSelectedAddressId] = useState<string | "new">("new");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("razorpay");
   const [placing, setPlacing] = useState(false);
   const [form, setForm] = useState({

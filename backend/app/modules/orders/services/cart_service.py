@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from uuid import UUID
 
 from app.modules.catalog.repositories.product_repository import ProductRepository
 from app.modules.orders.models.cart import Cart, CartItem
@@ -32,10 +33,10 @@ class CartService:
         )
         return self._to_response(cart)
 
-    def get_cart(self, cart_id: int) -> CartResponse:
+    def get_cart(self, cart_id: UUID) -> CartResponse:
         return self._to_response(self._get_or_404(cart_id))
 
-    def add_item(self, cart_id: int, payload: CartItemCreate) -> CartResponse:
+    def add_item(self, cart_id: UUID, payload: CartItemCreate) -> CartResponse:
         cart = self._get_or_404(cart_id)
         product = self.product_repository.get(payload.product_id)
         if not product or not product.is_active:
@@ -80,7 +81,7 @@ class CartService:
         return self._to_response(self._get_or_404(cart.id))
 
     def update_item(
-        self, cart_id: int, item_id: int, payload: CartItemUpdate
+        self, cart_id: UUID, item_id: UUID, payload: CartItemUpdate
     ) -> CartResponse:
         self._get_or_404(cart_id)
         item = self.repository.get_item(item_id)
@@ -90,7 +91,7 @@ class CartService:
         self.repository.save_item(item)
         return self._to_response(self._get_or_404(cart_id))
 
-    def delete_item(self, cart_id: int, item_id: int) -> CartResponse:
+    def delete_item(self, cart_id: UUID, item_id: UUID) -> CartResponse:
         self._get_or_404(cart_id)
         item = self.repository.get_item(item_id)
         if not item or item.cart_id != cart_id:
@@ -98,7 +99,47 @@ class CartService:
         self.repository.delete_item(item)
         return self._to_response(self._get_or_404(cart_id))
 
-    def _get_or_404(self, cart_id: int) -> Cart:
+    def clear_cart(self, cart_id: UUID) -> CartResponse:
+        cart = self._get_or_404(cart_id)
+        self.repository.clear_items(cart)
+        cart.coupon_code = None
+        self.repository.save(cart)
+        return self._to_response(self._get_or_404(cart_id))
+
+    def set_coupon(self, cart_id: UUID, coupon_code: str | None) -> CartResponse:
+        cart = self._get_or_404(cart_id)
+        cart.coupon_code = coupon_code.strip().upper() if coupon_code else None
+        self.repository.save(cart)
+        return self._to_response(self._get_or_404(cart_id))
+
+    def merge_into_customer(
+        self, guest_cart_id: UUID | None, customer_id: UUID
+    ) -> CartResponse:
+        customer_cart = self.repository.get_by_customer_id(customer_id)
+        if not customer_cart:
+            customer_cart = self.repository.create(customer_id=customer_id)
+
+        if guest_cart_id and guest_cart_id != customer_cart.id:
+            guest = self.repository.get(guest_cart_id)
+            if guest and guest.customer_id is None:
+                for item in list(guest.items):
+                    self.add_item(
+                        customer_cart.id,
+                        CartItemCreate(
+                            product_id=item.product_id,
+                            variant_id=item.variant_id,
+                            quantity=item.quantity,
+                        ),
+                    )
+                if guest.coupon_code and not customer_cart.coupon_code:
+                    customer_cart = self._get_or_404(customer_cart.id)
+                    customer_cart.coupon_code = guest.coupon_code
+                    self.repository.save(customer_cart)
+                self.repository.delete(guest)
+
+        return self._to_response(self._get_or_404(customer_cart.id))
+
+    def _get_or_404(self, cart_id: UUID) -> Cart:
         cart = self.repository.get(cart_id)
         if not cart:
             raise NotFoundError("Cart not found")
@@ -125,6 +166,7 @@ class CartService:
             session_key=cart.session_key,
             user_id=cart.user_id,
             customer_id=getattr(cart, "customer_id", None),
+            coupon_code=getattr(cart, "coupon_code", None),
             items=items,
             subtotal=subtotal,
             item_count=sum(row.quantity for row in items),

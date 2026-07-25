@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -15,13 +16,13 @@ class BrandRepository:
         statement = select(Brand).order_by(Brand.name.asc())
         return list(self.db.scalars(statement).all())
 
-    def get(self, brand_id: int) -> Brand | None:
+    def get(self, brand_id: UUID) -> Brand | None:
         return self.db.get(Brand, brand_id)
 
     def get_by_slug(self, slug: str) -> Brand | None:
         return self.db.scalar(select(Brand).where(Brand.slug == slug))
 
-    def count_products(self, brand_id: int) -> int:
+    def count_products(self, brand_id: UUID) -> int:
         return int(
             self.db.scalar(
                 select(func.count(Product.id)).where(Product.brand_id == brand_id)

@@ -28,7 +28,7 @@ export function ReviewsPanel() {
   const { items, loading, error } = useAppSelector((state) => state.reviews);
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteTarget, setDeleteTarget] = useState<AdminReview | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {

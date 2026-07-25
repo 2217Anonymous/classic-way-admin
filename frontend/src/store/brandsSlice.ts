@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { Brand, BrandInput } from "@/lib/types";
-import { isDemoMockForced, mockBrands, resolveDemoData } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -18,33 +17,12 @@ const initialState: BrandsState = {
   error: null,
 };
 
-let mockItems: Brand[] = mockBrands.map((item) => ({ ...item }));
-let nextMockId = Math.max(0, ...mockItems.map((item) => item.id)) + 1;
-
-function slugify(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export const fetchBrands = createAsyncThunk<
   Brand[],
   void,
   { state: StateWithAuth }
 >("brands/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockItems.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<Brand[]>(
-      "/brands",
-      {},
-      getState().auth.token,
-    );
-    return resolveDemoData(data, mockBrands);
-  } catch {
-    return resolveDemoData([], mockBrands);
-  }
+  return apiRequest<Brand[]>("/brands", {}, getState().auth.token);
 });
 
 export const createBrand = createAsyncThunk<
@@ -52,19 +30,6 @@ export const createBrand = createAsyncThunk<
   BrandInput,
   { state: StateWithAuth }
 >("brands/create", async (payload, { getState }) => {
-  if (isDemoMockForced()) {
-    const now = new Date().toISOString();
-    const row: Brand = {
-      id: nextMockId++,
-      name: payload.name.trim(),
-      slug: (payload.slug?.trim() || slugify(payload.name)) || `brand-${nextMockId}`,
-      is_active: payload.is_active ?? true,
-      created_at: now,
-      updated_at: now,
-    };
-    mockItems = [row, ...mockItems];
-    return row;
-  }
   return apiRequest<Brand>(
     "/brands",
     { method: "POST", body: JSON.stringify(payload) },
@@ -74,24 +39,9 @@ export const createBrand = createAsyncThunk<
 
 export const updateBrand = createAsyncThunk<
   Brand,
-  { id: number; changes: BrandInput },
+  { id: string; changes: BrandInput },
   { state: StateWithAuth }
 >("brands/update", async ({ id, changes }, { getState }) => {
-  if (isDemoMockForced()) {
-    const index = mockItems.findIndex((item) => item.id === id);
-    if (index < 0) throw new Error("Brand not found");
-    const updated: Brand = {
-      ...mockItems[index],
-      name: changes.name.trim(),
-      slug:
-        (changes.slug?.trim() || slugify(changes.name)) ||
-        mockItems[index].slug,
-      is_active: changes.is_active ?? mockItems[index].is_active,
-      updated_at: new Date().toISOString(),
-    };
-    mockItems = mockItems.map((item) => (item.id === id ? updated : item));
-    return updated;
-  }
   return apiRequest<Brand>(
     `/brands/${id}`,
     { method: "PATCH", body: JSON.stringify(changes) },
@@ -100,14 +50,10 @@ export const updateBrand = createAsyncThunk<
 });
 
 export const deleteBrand = createAsyncThunk<
-  number,
-  number,
+  string,
+  string,
   { state: StateWithAuth }
 >("brands/delete", async (id, { getState }) => {
-  if (isDemoMockForced()) {
-    mockItems = mockItems.filter((item) => item.id !== id);
-    return id;
-  }
   await apiRequest<void>(
     `/brands/${id}`,
     { method: "DELETE" },

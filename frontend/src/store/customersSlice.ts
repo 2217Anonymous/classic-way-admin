@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
 import type { AdminCustomer } from "@/lib/types";
-import { isDemoMockForced, mockCustomers, resolveDemoData } from "@/mock";
 
 type StateWithAuth = { auth: { token: string | null } };
 
@@ -20,36 +19,23 @@ const initialState: CustomersState = {
   error: null,
 };
 
-let mockItems: AdminCustomer[] = mockCustomers.map((item) => ({ ...item }));
-
 export const fetchCustomers = createAsyncThunk<
   AdminCustomer[],
   void,
   { state: StateWithAuth }
 >("customers/fetch", async (_, { getState }) => {
-  if (isDemoMockForced()) return mockItems.map((item) => ({ ...item }));
-  try {
-    const data = await apiRequest<AdminCustomer[]>(
-      "/admin/customers",
-      {},
-      getState().auth.token,
-    );
-    return resolveDemoData(data, mockCustomers);
-  } catch {
-    return resolveDemoData([], mockCustomers);
-  }
+  return apiRequest<AdminCustomer[]>(
+    "/admin/customers",
+    {},
+    getState().auth.token,
+  );
 });
 
 export const fetchCustomer = createAsyncThunk<
   AdminCustomer,
-  number,
+  string,
   { state: StateWithAuth }
->("customers/fetchOne", async (id, { getState, rejectWithValue }) => {
-  if (isDemoMockForced()) {
-    const found = mockItems.find((item) => item.id === id);
-    if (!found) return rejectWithValue("Customer not found") as never;
-    return { ...found };
-  }
+>("customers/fetchOne", async (id, { getState }) => {
   return apiRequest<AdminCustomer>(
     `/admin/customers/${id}`,
     {},
@@ -59,20 +45,9 @@ export const fetchCustomer = createAsyncThunk<
 
 export const updateCustomerStatus = createAsyncThunk<
   AdminCustomer,
-  { id: number; is_active: boolean },
+  { id: string; is_active: boolean },
   { state: StateWithAuth }
 >("customers/updateStatus", async ({ id, is_active }, { getState }) => {
-  if (isDemoMockForced()) {
-    const index = mockItems.findIndex((item) => item.id === id);
-    if (index < 0) throw new Error("Customer not found");
-    const updated: AdminCustomer = {
-      ...mockItems[index],
-      is_active,
-      updated_at: new Date().toISOString(),
-    };
-    mockItems = mockItems.map((item) => (item.id === id ? updated : item));
-    return updated;
-  }
   return apiRequest<AdminCustomer>(
     `/admin/customers/${id}/status`,
     { method: "PATCH", body: JSON.stringify({ is_active }) },

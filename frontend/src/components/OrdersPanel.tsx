@@ -151,7 +151,7 @@ export function OrdersPanel() {
     }
   }
 
-  function shipmentForOrder(orderId: number) {
+  function shipmentForOrder(orderId: string) {
     return shipments.find((shipment) => shipment.order_id === orderId);
   }
 

@@ -1,12 +1,12 @@
 export type Role = {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   created_at: string;
 };
 
 export type User = {
-  id: number;
+  id: string;
   email: string;
   full_name: string;
   is_active: boolean;
@@ -25,16 +25,16 @@ export type CreateUserInput = {
   email: string;
   full_name: string;
   password: string;
-  role_ids: number[];
+  role_ids: string[];
 };
 
 export type Category = {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description: string | null;
   image_url: string | null;
-  parent_id: number | null;
+  parent_id: string | null;
   is_active: boolean;
   sort_order: number;
   created_at: string;
@@ -49,14 +49,14 @@ export type CategoryInput = {
   name: string;
   slug?: string;
   description?: string;
-  parent_id?: number | null;
+  parent_id?: string | null;
   is_active?: boolean;
   sort_order?: number;
 };
 
 export type ProductMedia = {
-  id: number;
-  product_id: number;
+  id: string;
+  product_id: string;
   url: string;
   alt_text: string | null;
   sort_order: number;
@@ -65,8 +65,8 @@ export type ProductMedia = {
 };
 
 export type ProductAttribute = {
-  id: number;
-  product_id: number;
+  id: string;
+  product_id: string;
   name: string;
   values: string[];
   sort_order: number;
@@ -74,8 +74,8 @@ export type ProductAttribute = {
 };
 
 export type ProductVariant = {
-  id: number;
-  product_id: number;
+  id: string;
+  product_id: string;
   sku: string;
   price: string | number | null;
   stock: number;
@@ -87,7 +87,7 @@ export type ProductVariant = {
 };
 
 export type AttributeDefinition = {
-  id: number;
+  id: string;
   name: string;
   values: string[];
   sort_order: number;
@@ -119,7 +119,7 @@ export type ProductVariantInput = {
 };
 
 export type Brand = {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   is_active: boolean;
@@ -134,7 +134,7 @@ export type BrandInput = {
 };
 
 export type AdminCustomer = {
-  id: number;
+  id: string;
   email: string;
   full_name: string;
   phone: string | null;
@@ -145,9 +145,9 @@ export type AdminCustomer = {
 };
 
 export type AdminReview = {
-  id: number;
-  product_id: number;
-  customer_id: number;
+  id: string;
+  product_id: string;
+  customer_id: string;
   customer_name: string | null;
   rating: number;
   title: string | null;
@@ -159,7 +159,7 @@ export type AdminReview = {
 };
 
 export type Product = {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description: string | null;
@@ -174,9 +174,9 @@ export type Product = {
   tags: string | null;
   visibility: string;
   published_at: string | null;
-  category_id: number | null;
+  category_id: string | null;
   category_name: string | null;
-  brand_id?: number | null;
+  brand_id?: string | null;
   is_published: boolean;
   is_active: boolean;
   is_featured?: boolean;
@@ -208,8 +208,8 @@ export type ProductInput = {
   tags?: string | null;
   visibility?: string;
   published_at?: string | null;
-  category_id?: number | null;
-  brand_id?: number | null;
+  category_id?: string | null;
+  brand_id?: string | null;
   is_published?: boolean;
   is_active?: boolean;
   is_featured?: boolean;
@@ -223,7 +223,7 @@ export type ProductInput = {
 };
 
 export type StoreSettings = {
-  id: number;
+  id: string;
   store_name: string;
   legal_name: string | null;
   email: string | null;
@@ -256,7 +256,7 @@ export type StoreSettingsInput = {
 };
 
 export type TaxRule = {
-  id: number;
+  id: string;
   name: string;
   code: string;
   rate_percent: string | number;
@@ -281,7 +281,7 @@ export type TaxRuleInput = {
 };
 
 export type Coupon = {
-  id: number;
+  id: string;
   code: string;
   name: string;
   discount_type: "percent" | "fixed";
@@ -313,11 +313,11 @@ export type CouponInput = {
 /* ------------------------------------------------------------------ */
 
 export type InventoryItem = {
-  id: number;
-  product_id: number;
+  id: string;
+  product_id: string;
   product_name: string;
   sku: string | null;
-  variant_id: number | null;
+  variant_id: string | null;
   variant_label: string | null;
   image_url: string | null;
   stock: number;
@@ -335,7 +335,7 @@ export type InventoryAdjustInput = {
 };
 
 export type InventorySettings = {
-  id: number;
+  id: string;
   default_low_stock_threshold: number;
   backorders_allowed: boolean;
   updated_at: string;
@@ -351,12 +351,12 @@ export type InventorySettingsInput = {
 /* ------------------------------------------------------------------ */
 
 export type CartItem = {
-  id: number;
-  cart_id: number;
-  product_id: number;
+  id: string;
+  cart_id: string;
+  product_id: string;
   product_name: string;
   product_slug: string;
-  variant_id: number | null;
+  variant_id: string | null;
   variant_label: string | null;
   sku: string | null;
   image_url: string | null;
@@ -366,9 +366,9 @@ export type CartItem = {
 };
 
 export type Cart = {
-  id: number;
+  id: string;
   cart_token: string;
-  customer_id: number | null;
+  customer_id: string | null;
   status: "active" | "converted" | "abandoned";
   items: CartItem[];
   subtotal: number;
@@ -383,8 +383,8 @@ export type Cart = {
 /* ------------------------------------------------------------------ */
 
 export type CustomerAddress = {
-  id: number;
-  customer_id: number | null;
+  id: string;
+  customer_id: string | null;
   full_name: string;
   phone: string;
   email: string | null;
@@ -416,11 +416,11 @@ export type CustomerAddressInput = {
 /* ------------------------------------------------------------------ */
 
 export type OrderItem = {
-  id: number;
-  order_id: number;
-  product_id: number;
+  id: string;
+  order_id: string;
+  product_id: string;
   product_name: string;
-  variant_id: number | null;
+  variant_id: string | null;
   variant_label: string | null;
   sku: string | null;
   image_url: string | null;
@@ -442,9 +442,9 @@ export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type PaymentMethod = "razorpay" | "cod";
 
 export type Order = {
-  id: number;
+  id: string;
   order_number: string;
-  customer_id: number | null;
+  customer_id: string | null;
   customer_name: string;
   customer_email: string | null;
   customer_phone: string | null;
@@ -471,10 +471,10 @@ export type CreateOrderInput = {
   customer_email?: string | null;
   customer_phone?: string | null;
   items: {
-    product_id: number;
+    product_id: string;
     product_name: string;
     product_slug?: string;
-    variant_id?: number | null;
+    variant_id?: string | null;
     variant_label?: string | null;
     sku?: string | null;
     image_url?: string | null;
@@ -496,8 +496,8 @@ export type CreateOrderInput = {
 /* ------------------------------------------------------------------ */
 
 export type Payment = {
-  id: number;
-  order_id: number;
+  id: string;
+  order_id: string;
   order_number: string;
   provider: PaymentMethod;
   provider_ref: string | null;
@@ -508,9 +508,9 @@ export type Payment = {
 };
 
 export type Refund = {
-  id: number;
-  payment_id: number;
-  order_id: number;
+  id: string;
+  payment_id: string;
+  order_id: string;
   order_number: string;
   amount: number;
   reason: string;
@@ -532,8 +532,8 @@ export type ShipmentStatus =
   | "exception";
 
 export type ShipmentEvent = {
-  id: number;
-  shipment_id: number;
+  id: string;
+  shipment_id: string;
   status: string;
   description: string;
   location: string | null;
@@ -541,8 +541,8 @@ export type ShipmentEvent = {
 };
 
 export type Shipment = {
-  id: number;
-  order_id: number;
+  id: string;
+  order_id: string;
   order_number: string;
   carrier: string;
   tracking_number: string;
@@ -557,7 +557,7 @@ export type Shipment = {
 };
 
 export type CreateShipmentInput = {
-  order_id: number;
+  order_id: string;
   carrier: string;
   tracking_number?: string;
   estimated_delivery?: string | null;
@@ -576,7 +576,7 @@ export type ShipmentEventInput = {
 export type NotificationChannel = "email" | "sms" | "push";
 
 export type NotificationItem = {
-  id: number;
+  id: string;
   channel: NotificationChannel;
   event: string;
   recipient: string;
@@ -600,7 +600,7 @@ export type SendTestNotificationInput = {
 /* ------------------------------------------------------------------ */
 
 export type ReportSummary = {
-  id: number;
+  id: string;
   period: string;
   total_orders: number;
   total_revenue: number;

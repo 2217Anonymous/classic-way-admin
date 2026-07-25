@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,7 +17,7 @@ class BrandUpdate(BaseModel):
 
 
 class BrandResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     slug: str
     is_active: bool

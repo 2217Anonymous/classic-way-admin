@@ -12,7 +12,7 @@ export default function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const productId = Number(id);
+  const productId = String(id);
 
   return (
     <AuthGate>
@@ -26,7 +26,7 @@ export default function EditProductPage({
           ]}
         >
           <ProductFormPage
-            productId={Number.isFinite(productId) ? productId : undefined}
+            productId={productId || undefined}
           />
         </AdminShell>
       </Suspense>

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Response, status
 
 from app.modules.iam.api.dependencies import AdminUser
@@ -26,12 +27,12 @@ def create_role(payload: RoleCreate, db: DbSession, _: AdminUser) -> Role:
 
 @router.patch("/{role_id}", response_model=RoleResponse)
 def update_role(
-    role_id: int, payload: RoleUpdate, db: DbSession, _: AdminUser
+    role_id: UUID, payload: RoleUpdate, db: DbSession, _: AdminUser
 ) -> Role:
     return get_service(db).update_role(role_id, payload)
 
 
 @router.delete("/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_role(role_id: int, db: DbSession, _: AdminUser) -> Response:
+def delete_role(role_id: UUID, db: DbSession, _: AdminUser) -> Response:
     get_service(db).delete_role(role_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -20,7 +21,7 @@ class CartRepository:
         self.db.refresh(cart)
         return self.get(cart.id) or cart
 
-    def get(self, cart_id: int) -> Cart | None:
+    def get(self, cart_id: UUID) -> Cart | None:
         statement = select(Cart).where(Cart.id == cart_id).options(*self._options())
         return self.db.scalars(statement).unique().first()
 
@@ -33,7 +34,7 @@ class CartRepository:
         )
         return self.db.scalars(statement).unique().first()
 
-    def get_by_customer_id(self, customer_id: int) -> Cart | None:
+    def get_by_customer_id(self, customer_id: UUID) -> Cart | None:
         statement = (
             select(Cart)
             .where(Cart.customer_id == customer_id)
@@ -55,7 +56,7 @@ class CartRepository:
         self._expire_items(item.cart_id)
         return item
 
-    def get_item(self, item_id: int) -> CartItem | None:
+    def get_item(self, item_id: UUID) -> CartItem | None:
         return self.db.get(CartItem, item_id)
 
     def save_item(self, item: CartItem) -> CartItem:
@@ -77,7 +78,11 @@ class CartRepository:
         self.db.commit()
         self._expire_items(cart.id)
 
-    def _expire_items(self, cart_id: int) -> None:
+    def delete(self, cart: Cart) -> None:
+        self.db.delete(cart)
+        self.db.commit()
+
+    def _expire_items(self, cart_id: UUID) -> None:
         cart = self.db.get(Cart, cart_id)
         if cart is not None:
             self.db.expire(cart, ["items"])

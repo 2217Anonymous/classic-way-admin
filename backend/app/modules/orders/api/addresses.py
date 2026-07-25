@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
@@ -25,7 +26,7 @@ def get_service(db: DbSession) -> AddressService:
 def list_addresses(
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
-    user_id: int | None = None,
+    user_id: UUID | None = None,
 ) -> list[AddressResponse]:
     return get_service(db).list_addresses(user_id)
 
@@ -37,7 +38,7 @@ def create_address(payload: AddressCreate, db: DbSession, _: AdminUser) -> Addre
 
 @router.get("/{address_id}", response_model=AddressResponse)
 def get_address(
-    address_id: int,
+    address_id: UUID,
     db: DbSession,
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> AddressResponse:
@@ -46,11 +47,11 @@ def get_address(
 
 @router.patch("/{address_id}", response_model=AddressResponse)
 def update_address(
-    address_id: int, payload: AddressUpdate, db: DbSession, _: AdminUser
+    address_id: UUID, payload: AddressUpdate, db: DbSession, _: AdminUser
 ) -> AddressResponse:
     return get_service(db).update_address(address_id, payload)
 
 
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_address(address_id: int, db: DbSession, _: AdminUser) -> None:
+def delete_address(address_id: UUID, db: DbSession, _: AdminUser) -> None:
     get_service(db).delete_address(address_id)

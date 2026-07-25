@@ -1,18 +1,19 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class CartCreate(BaseModel):
     session_key: str | None = Field(default=None, max_length=120)
-    user_id: int | None = None
-    customer_id: int | None = None
+    user_id: UUID | None = None
+    customer_id: UUID | None = None
 
 
 class CartItemCreate(BaseModel):
-    product_id: int
-    variant_id: int | None = None
+    product_id: UUID
+    variant_id: UUID | None = None
     quantity: int = Field(default=1, ge=1, le=999)
 
 
@@ -21,10 +22,10 @@ class CartItemUpdate(BaseModel):
 
 
 class CartItemResponse(BaseModel):
-    id: int
-    cart_id: int
-    product_id: int
-    variant_id: int | None
+    id: UUID
+    cart_id: UUID
+    product_id: UUID
+    variant_id: UUID | None
     quantity: int
     unit_price: Decimal
     product_name: str
@@ -35,10 +36,10 @@ class CartItemResponse(BaseModel):
 
 
 class CartResponse(BaseModel):
-    id: int
+    id: UUID
     session_key: str | None
-    user_id: int | None
-    customer_id: int | None = None
+    user_id: UUID | None
+    customer_id: UUID | None = None
     coupon_code: str | None = None
     items: list[CartItemResponse] = Field(default_factory=list)
     subtotal: Decimal

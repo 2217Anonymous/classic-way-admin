@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,13 +14,13 @@ class RoleRepository:
     def list(self) -> list[Role]:
         return list(self.db.scalars(select(Role).order_by(Role.name)).all())
 
-    def get(self, role_id: int) -> Role | None:
+    def get(self, role_id: UUID) -> Role | None:
         return self.db.get(Role, role_id)
 
     def get_by_name(self, name: str) -> Role | None:
         return self.db.scalar(select(Role).where(Role.name == name))
 
-    def get_many(self, role_ids: list[int]) -> list[Role]:
+    def get_many(self, role_ids: list[UUID]) -> list[Role]:
         if not role_ids:
             return []
         return list(self.db.scalars(select(Role).where(Role.id.in_(set(role_ids)))).all())

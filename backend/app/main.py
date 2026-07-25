@@ -13,7 +13,12 @@ from app.core.init_db import seed_database
 from app.modules.catalog.api import attributes, brands, categories, products
 from app.modules.catalog.services.category_service import CATEGORY_UPLOAD_DIR, UPLOAD_ROOT
 from app.modules.catalog.services.product_service import PRODUCT_UPLOAD_DIR
-from app.modules.customers.api import admin_coupon_usages, admin_customers, admin_reviews
+from app.modules.customers.api import (
+    admin_coupon_usages,
+    admin_customers,
+    admin_feedback,
+    admin_reviews,
+)
 from app.modules.fulfillment.api import router as shipments_router
 from app.modules.fulfillment.api import track_router
 from app.modules.iam.api import roles
@@ -82,4 +87,5 @@ app.include_router(notifications_router, prefix=settings.api_v1_prefix)
 app.include_router(reports_router, prefix=settings.api_v1_prefix)
 app.include_router(admin_customers.router, prefix=settings.api_v1_prefix)
 app.include_router(admin_reviews.router, prefix=settings.api_v1_prefix)
+app.include_router(admin_feedback.router, prefix=settings.api_v1_prefix)
 app.include_router(admin_coupon_usages.router, prefix=settings.api_v1_prefix)

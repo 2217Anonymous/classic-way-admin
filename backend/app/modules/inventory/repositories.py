@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -37,11 +38,11 @@ class InventoryItemRepository:
         statement = select(InventoryItem).order_by(InventoryItem.id.asc())
         return list(self.db.scalars(statement).all())
 
-    def get(self, item_id: int) -> InventoryItem | None:
+    def get(self, item_id: UUID) -> InventoryItem | None:
         return self.db.get(InventoryItem, item_id)
 
     def get_by_product(
-        self, product_id: int | None, variant_id: int | None
+        self, product_id: UUID | None, variant_id: UUID | None
     ) -> InventoryItem | None:
         statement = select(InventoryItem).where(
             InventoryItem.product_id == product_id,
@@ -80,7 +81,7 @@ class StockMovementRepository:
         self.db.refresh(row)
         return row
 
-    def list_for_item(self, inventory_item_id: int) -> list[StockMovement]:
+    def list_for_item(self, inventory_item_id: UUID) -> list[StockMovement]:
         statement = (
             select(StockMovement)
             .where(StockMovement.inventory_item_id == inventory_item_id)
