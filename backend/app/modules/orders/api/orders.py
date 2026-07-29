@@ -8,7 +8,7 @@ from app.modules.iam.api.dependencies import AdminUser, require_roles
 from app.modules.iam.constants import MANAGER_ROLE, VIEWER_ROLE
 from app.modules.identity.api.dependencies import DbSession
 from app.modules.identity.models.user import User
-from app.modules.inventory.repositories import InventoryItemRepository
+from app.modules.inventory.repositories.inventory_repository import InventoryItemRepository
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
 from app.modules.orders.repositories.order_repository import OrderRepository
@@ -18,7 +18,7 @@ from app.modules.orders.schemas.order import (
     OrderResponse,
 )
 from app.modules.orders.services.order_service import OrderService
-from app.modules.settings.repositories import CouponRepository
+from app.modules.settings.repositories.coupon_repository import CouponRepository
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 

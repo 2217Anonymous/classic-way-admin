@@ -1,0 +1,41 @@
+name: classic-way-admin
+
+services:
+  backend:
+    container_name: classic-way-admin
+    image: classic-way-admin:latest
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me-before-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      POSTGRES_HOST: classic-way-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-classic_way}
+      POSTGRES_USER: ${POSTGRES_USER:-classic_way}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-classic_way}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-ChangeMe123!}
+      INITIAL_ADMIN_NAME: ${INITIAL_ADMIN_NAME:-System Admin}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-cod}
+      PAYMENT_SECRET: ${PAYMENT_SECRET:-}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      LOCAL_UPLOAD_ROOT: uploads
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - classic-way
+
+volumes:
+  uploads:
+    external: true
+    name: classic-way-shopping_uploads
+
+networks:
+  classic-way:
+    external: true
+    name: classic-way

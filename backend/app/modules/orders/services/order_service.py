@@ -7,7 +7,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from app.modules.catalog.repositories.product_repository import ProductRepository
-from app.modules.inventory.repositories import InventoryItemRepository
+from app.modules.inventory.repositories.inventory_repository import InventoryItemRepository
 from app.modules.orders.models.order import Order, OrderItem, OrderStatusHistory
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
@@ -18,7 +18,7 @@ from app.modules.orders.schemas.order import (
     OrderResponse,
     OrderStatusHistoryResponse,
 )
-from app.modules.settings.repositories import CouponRepository
+from app.modules.settings.repositories.coupon_repository import CouponRepository
 from app.utils.exceptions import AppError, NotFoundError
 
 CANCELLABLE_STATUSES = {"draft", "pending", "paid"}

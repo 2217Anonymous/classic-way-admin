@@ -19,6 +19,7 @@ import rolesReducer from "./rolesSlice";
 import shipmentsReducer from "./shipmentsSlice";
 import storeSettingsReducer from "./storeSettingsSlice";
 import taxReducer from "./taxSlice";
+import themeSettingsReducer from "./themeSettingsSlice";
 import toastReducer from "./toastSlice";
 import usersReducer from "./usersSlice";
 
@@ -32,6 +33,7 @@ export const store = configureStore({
     brands: brandsReducer,
     attributes: attributesReducer,
     storeSettings: storeSettingsReducer,
+    themeSettings: themeSettingsReducer,
     tax: taxReducer,
     coupons: couponsReducer,
     inventory: inventoryReducer,

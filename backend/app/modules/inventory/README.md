@@ -3,6 +3,10 @@
 Owns stock levels for products/variants, low-stock alerting, and the manual
 adjustment audit trail.
 
+## Package layout
+
+`api/`, `models/`, `repositories/`, `schemas/`, `services/`
+
 ## Responsibilities
 
 - Track on-hand quantity and reserved quantity per product/variant

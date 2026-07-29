@@ -33,7 +33,7 @@ from app.modules.fulfillment.models import (  # noqa: F401
 )
 from app.modules.iam.models.role import Role  # noqa: F401
 from app.modules.identity.models.user import User  # noqa: F401
-from app.modules.inventory.models import (  # noqa: F401
+from app.modules.inventory.models.inventory import (  # noqa: F401
     InventoryItem,
     InventorySettings,
     StockMovement,
@@ -46,8 +46,15 @@ from app.modules.orders.models.order import (  # noqa: F401
     OrderItem,
     OrderStatusHistory,
 )
-from app.modules.payments.models import Payment, PaymentEvent, Refund  # noqa: F401
-from app.modules.settings.models import Coupon, StoreSettings, TaxRule  # noqa: F401
+from app.modules.payments.models.payment import (  # noqa: F401
+    Payment,
+    PaymentEvent,
+    Refund,
+)
+from app.modules.settings.models.coupon import Coupon  # noqa: F401
+from app.modules.settings.models.store import StoreSettings  # noqa: F401
+from app.modules.settings.models.tax import TaxRule  # noqa: F401
+from app.modules.settings.models.theme import Theme  # noqa: F401
 
 config = context.config
 config.set_main_option(

@@ -44,6 +44,7 @@ import { ShipmentsPanel } from "@/components/ShipmentsPanel";
 import { ShopDetailsPanel } from "@/components/ShopDetailsPanel";
 import { StatusPill } from "@/components/StatusPill";
 import { TaxRulesPanel } from "@/components/TaxRulesPanel";
+import { ThemeSettingsPanel } from "@/components/ThemeSettingsPanel";
 import { useRowSelection } from "@/hooks/useRowSelection";
 import { useTableState } from "@/hooks/useTableState";
 import { toastError, toastSuccess } from "@/lib/toast";
@@ -56,6 +57,7 @@ import {
   updateRole,
 } from "@/store/rolesSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchDefaultTheme } from "@/store/themeSettingsSlice";
 import {
   createUser,
   deleteUser,
@@ -163,6 +165,13 @@ const tabMeta = {
       { label: "Invoice" },
     ],
   },
+  theme: {
+    title: "Theme Settings",
+    breadcrumbs: [
+      { label: "Settings", href: "/?tab=profile" },
+      { label: "Theme Settings" },
+    ],
+  },
   inventory: {
     title: "Inventory",
     breadcrumbs: [
@@ -225,6 +234,7 @@ export function AdminDashboard() {
   const dispatch = useAppDispatch();
   const usersState = useAppSelector((state) => state.users);
   const rolesState = useAppSelector((state) => state.roles);
+  const themeSettings = useAppSelector((state) => state.themeSettings);
   const currentUser = useAppSelector((state) => state.auth.user);
   const { tab, setTab } = useAdminTabState("dashboard");
 
@@ -232,6 +242,12 @@ export function AdminDashboard() {
     void dispatch(fetchUsers());
     void dispatch(fetchRoles());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (tab === "theme" && !themeSettings.item && !themeSettings.loading) {
+      void dispatch(fetchDefaultTheme());
+    }
+  }, [tab, themeSettings.item, themeSettings.loading, dispatch]);
 
   return (
     <AdminNavProvider onTabChange={setTab}>
@@ -264,6 +280,8 @@ export function AdminDashboard() {
           <CouponsPanel />
         ) : tab === "coupon-usages" ? (
           <CouponUsagesPanel />
+        ) : tab === "theme" ? (
+          <ThemeSettingsPanel />
         ) : tab === "inventory" ? (
           <InventoryPanel />
         ) : tab === "orders" ? (
@@ -459,7 +477,6 @@ function UsersPanel({
                   indeterminate={selection.someSelected}
                   onChange={selection.togglePage}
                 />
-                <StaticTh label="ID" />
                 <SortableTh
                   label="User"
                   sortKey="name"
@@ -502,7 +519,6 @@ function UsersPanel({
                     onChange={() => selection.toggleOne(user.id)}
                     label={`Select ${user.full_name}`}
                   />
-                  <td className="px-4 py-3.5 text-slate-500">#{user.id}</td>
                   <td className="px-4 py-3.5"><UserIdentity user={user} /></td>
                   <td className="px-4 py-3.5 text-slate-600">{user.email}</td>
                   <td className="px-4 py-3.5"><RoleBadges roles={user.roles} /></td>
@@ -869,7 +885,6 @@ function RolesPanel() {
                   indeterminate={selection.someSelected}
                   onChange={selection.togglePage}
                 />
-                <StaticTh label="ID" />
                 <SortableTh
                   label="Role"
                   sortKey="name"
@@ -905,7 +920,6 @@ function RolesPanel() {
                     onChange={() => selection.toggleOne(role.id)}
                     label={`Select ${role.name}`}
                   />
-                  <td className="px-4 py-3.5 text-slate-500">#{role.id}</td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <span className="avatar-circle grid size-9 place-items-center bg-[var(--theme-green-soft)] text-[var(--theme-green)]">

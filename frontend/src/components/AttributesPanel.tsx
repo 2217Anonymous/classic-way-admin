@@ -29,7 +29,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 import { ConfirmDialog, Modal } from "./Modal";
 
-type SortKey = "id" | "name" | "values" | "status";
+type SortKey = "name" | "values" | "status";
 
 export function AttributesPanel() {
   const dispatch = useAppDispatch();
@@ -57,8 +57,6 @@ export function AttributesPanel() {
 
   const getSortValue = useCallback((row: AttributeDefinition, key: SortKey) => {
     switch (key) {
-      case "id":
-        return row.id;
       case "name":
         return row.name;
       case "values":
@@ -72,7 +70,7 @@ export function AttributesPanel() {
 
   const table = useTableState<AttributeDefinition, SortKey>({
     rows: items,
-    initialSort: { key: "id", direction: "desc" },
+    initialSort: { key: "name", direction: "asc" },
     getSortValue,
     matchesSearch,
   });
@@ -167,13 +165,6 @@ export function AttributesPanel() {
                   onChange={selection.togglePage}
                 />
                 <SortableTh
-                  label="ID"
-                  sortKey="id"
-                  activeKey={table.sort.key}
-                  direction={table.sort.direction}
-                  onSort={table.toggleSort}
-                />
-                <SortableTh
                   label="Name"
                   sortKey="name"
                   activeKey={table.sort.key}
@@ -208,7 +199,6 @@ export function AttributesPanel() {
                     onChange={() => selection.toggleOne(row.id)}
                     label={`Select ${row.name}`}
                   />
-                  <td className="px-4 py-3.5 text-slate-500">#{row.id}</td>
                   <td className="px-4 py-3.5 font-semibold text-slate-900">
                     {row.name}
                   </td>

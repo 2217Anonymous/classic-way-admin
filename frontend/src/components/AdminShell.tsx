@@ -28,6 +28,7 @@ import {
   Minimize,
   Moon,
   Package,
+  Palette,
   Percent,
   Plus,
   Settings2,
@@ -59,6 +60,7 @@ export type AdminNavKey =
   | "invoice"
   | "coupons"
   | "coupon-usages"
+  | "theme"
   | "inventory"
   | "orders"
   | "customers"
@@ -95,6 +97,7 @@ const SETTINGS_KEYS: AdminNavKey[] = [
   "invoice",
   "coupons",
   "coupon-usages",
+  "theme",
 ];
 
 function navHref(key: AdminNavKey) {
@@ -629,6 +632,14 @@ export function AdminShell({
                 label="Coupon usages"
                 nested
               />
+              <NavButton
+                active={activeNav === "theme"}
+                collapsed={false}
+                href={tabHref("theme")}
+                icon={<Palette size={15} />}
+                label="Theme Settings"
+                nested
+              />
             </div>
           )}
           {!expanded && (
@@ -674,6 +685,13 @@ export function AdminShell({
                 href={tabHref("coupon-usages")}
                 icon={<TicketPercent size={16} />}
                 label="Coupon usages"
+              />
+              <NavButton
+                active={activeNav === "theme"}
+                collapsed
+                href={tabHref("theme")}
+                icon={<Palette size={16} />}
+                label="Theme Settings"
               />
             </>
           )}
@@ -922,6 +940,7 @@ function tabKeyFromHref(href: string): AdminNavKey | null {
     "invoice",
     "coupons",
     "coupon-usages",
+    "theme",
     "inventory",
     "orders",
     "customers",
@@ -1040,6 +1059,7 @@ export function useAdminTabParam(defaultTab: AdminNavKey = "dashboard"): AdminNa
     tab === "invoice" ||
     tab === "coupons" ||
     tab === "coupon-usages" ||
+    tab === "theme" ||
     tab === "inventory" ||
     tab === "orders" ||
     tab === "customers" ||

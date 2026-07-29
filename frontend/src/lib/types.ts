@@ -57,11 +57,17 @@ export type CategoryInput = {
 export type ProductMedia = {
   id: string;
   product_id: string;
+  /** Resolved large image URL (backward compatible). */
   url: string;
+  large_url?: string | null;
+  medium_url?: string | null;
+  thumbnail_url?: string | null;
+  original_filename?: string | null;
   alt_text: string | null;
   sort_order: number;
   is_primary: boolean;
   created_at: string;
+  updated_at?: string | null;
 };
 
 export type ProductAttribute = {
@@ -253,6 +259,47 @@ export type StoreSettingsInput = {
   country?: string | null;
   currency?: string;
   timezone?: string;
+};
+
+export type ThemePageVisibility = {
+  about_us: boolean;
+  contact_us: boolean;
+  cart: boolean;
+  checkout: boolean;
+  compare: boolean;
+  faq: boolean;
+  login: boolean;
+  register: boolean;
+  wishlist: boolean;
+  terms: boolean;
+  track_order: boolean;
+};
+
+export type ThemeSettings = {
+  id: string;
+  customer_id: string | null;
+  home_theme: string;
+  shop_category: string;
+  shop_layout: string;
+  product_layout: string;
+  blog_layout: string;
+  page_visibility: ThemePageVisibility;
+  theme_config: Record<string, unknown> | null;
+  is_default: boolean;
+  is_active: boolean;
+  source?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ThemeSettingsInput = {
+  home_theme: string;
+  shop_category: string;
+  shop_layout: string;
+  product_layout: string;
+  blog_layout: string;
+  page_visibility: ThemePageVisibility;
+  theme_config?: Record<string, unknown> | null;
 };
 
 export type TaxRule = {

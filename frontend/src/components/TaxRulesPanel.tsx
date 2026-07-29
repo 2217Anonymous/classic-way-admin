@@ -28,7 +28,7 @@ import {
   updateTaxRule,
 } from "@/store/taxSlice";
 
-type SortKey = "id" | "name" | "code" | "rate" | "status";
+type SortKey = "name" | "code" | "rate" | "status";
 
 export function TaxRulesPanel() {
   const dispatch = useAppDispatch();
@@ -65,8 +65,6 @@ export function TaxRulesPanel() {
 
   const getSortValue = useCallback((row: TaxRule, key: SortKey) => {
     switch (key) {
-      case "id":
-        return row.id;
       case "name":
         return row.name;
       case "code":
@@ -82,7 +80,7 @@ export function TaxRulesPanel() {
 
   const table = useTableState<TaxRule, SortKey>({
     rows: filtered,
-    initialSort: { key: "id", direction: "desc" },
+    initialSort: { key: "name", direction: "asc" },
     getSortValue,
     matchesSearch,
   });
@@ -188,13 +186,6 @@ export function TaxRulesPanel() {
                   onChange={selection.togglePage}
                 />
                 <SortableTh
-                  label="ID"
-                  sortKey="id"
-                  activeKey={table.sort.key}
-                  direction={table.sort.direction}
-                  onSort={table.toggleSort}
-                />
-                <SortableTh
                   label="Name"
                   sortKey="name"
                   activeKey={table.sort.key}
@@ -230,7 +221,7 @@ export function TaxRulesPanel() {
               {loading && items.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     Loading tax rules…
@@ -239,7 +230,7 @@ export function TaxRulesPanel() {
               ) : table.pageRows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     No tax rules found.
@@ -253,7 +244,6 @@ export function TaxRulesPanel() {
                       onChange={() => selection.toggleOne(row.id)}
                       label={`Select ${row.name}`}
                     />
-                    <td className="px-4 py-3.5">#{row.id}</td>
                     <td className="px-4 py-3.5 font-medium">{row.name}</td>
                     <td className="px-4 py-3.5">{row.code}</td>
                     <td className="px-4 py-3.5">
