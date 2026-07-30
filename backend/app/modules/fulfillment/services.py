@@ -140,4 +140,8 @@ class ShipmentService:
         return shipment
 
     def _to_response(self, shipment: Shipment) -> ShipmentResponse:
-        return ShipmentResponse.model_validate(shipment)
+        order = self.order_repository.get(shipment.order_id)
+        data = ShipmentResponse.model_validate(shipment)
+        return data.model_copy(
+            update={"order_number": order.order_number if order else None}
+        )

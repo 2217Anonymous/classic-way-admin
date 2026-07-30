@@ -9,6 +9,7 @@ from app.modules.customers.schemas.engagement import (
     ReviewImageResponse,
     ReviewResponse,
 )
+from app.modules.catalog.repositories.product_repository import ProductRepository
 from app.utils.exceptions import NotFoundError
 
 
@@ -21,9 +22,11 @@ class AdminReviewService:
         self,
         repository: ReviewRepository,
         customer_repository: CustomerRepository | None = None,
+        product_repository: ProductRepository | None = None,
     ):
         self.repository = repository
         self.customer_repository = customer_repository
+        self.product_repository = product_repository
 
     def list_reviews(
         self,
@@ -60,9 +63,14 @@ class AdminReviewService:
         if self.customer_repository:
             customer = self.customer_repository.get(review.customer_id)
             customer_name = customer.full_name if customer else None
+        product_name = None
+        if self.product_repository:
+            product = self.product_repository.get(review.product_id)
+            product_name = product.name if product else None
         return ReviewResponse(
             id=review.id,
             product_id=review.product_id,
+            product_name=product_name,
             customer_id=review.customer_id,
             customer_name=customer_name,
             rating=review.rating,

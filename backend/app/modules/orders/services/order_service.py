@@ -19,12 +19,25 @@ from app.modules.orders.schemas.order import (
     OrderStatusHistoryResponse,
 )
 from app.modules.settings.repositories.coupon_repository import CouponRepository
-from app.utils.exceptions import AppError, NotFoundError
+from app.utils.exceptions import AppError, ConflictError, NotFoundError
 
-CANCELLABLE_STATUSES = {"draft", "pending", "paid"}
+CANCELLABLE_STATUSES = {"draft", "pending", "paid", "processing"}
 PAYABLE_STATUSES = {"draft", "pending"}
 FREE_SHIPPING_THRESHOLD = Decimal("999")
 STANDARD_SHIPPING = Decimal("59")
+
+# Strict admin-controlled transitions (matches frontend OrderStatus values).
+ALLOWED_STATUS_TRANSITIONS: dict[str, set[str]] = {
+    "draft": {"pending", "paid", "cancelled"},
+    "pending": {"paid", "cancelled", "processing"},
+    "paid": {"processing", "cancelled", "refunded"},
+    "processing": {"shipped", "cancelled"},
+    "shipped": {"delivered"},
+    "delivered": {"returned", "refunded"},
+    "returned": {"refunded"},
+    "cancelled": set(),
+    "refunded": set(),
+}
 
 
 def generate_order_number() -> str:
@@ -185,6 +198,40 @@ class OrderService:
                 from_status=previous,
                 to_status="refunded",
                 note=note or "Refund processed",
+            )
+        )
+        return self._to_response(self.repository.get(order.id) or order)
+
+    def update_status(
+        self, order_id: UUID, status: str, note: str | None = None
+    ) -> OrderResponse:
+        order = self._get_or_404(order_id)
+        target = status.strip().lower()
+        if order.status == target:
+            return self._to_response(order)
+
+        allowed = ALLOWED_STATUS_TRANSITIONS.get(order.status, set())
+        if target not in allowed:
+            raise ConflictError(
+                f"Cannot transition order from '{order.status}' to '{target}'"
+            )
+
+        if target == "paid":
+            return self.mark_paid(order_id, note=note or "Marked paid")
+        if target == "cancelled":
+            return self.cancel_order(order_id, reason=note)
+        if target == "refunded":
+            return self.mark_refunded(order_id, note=note)
+
+        previous = order.status
+        order.status = target
+        self.repository.save(order)
+        self.repository.add_status_history(
+            OrderStatusHistory(
+                order_id=order.id,
+                from_status=previous,
+                to_status=target,
+                note=note or f"Status updated to {target}",
             )
         )
         return self._to_response(self.repository.get(order.id) or order)

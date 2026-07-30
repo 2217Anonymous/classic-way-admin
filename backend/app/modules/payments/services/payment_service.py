@@ -50,6 +50,11 @@ class PaymentService:
     def list_payments(self) -> list[PaymentResponse]:
         return [PaymentResponse.model_validate(row) for row in self.repository.list()]
 
+    def list_refunds(self) -> list[RefundResponse]:
+        return [
+            RefundResponse.model_validate(row) for row in self.refund_repository.list()
+        ]
+
     def create_razorpay_payment(self, payload: PaymentCreateRequest) -> PaymentResponse:
         order = self.order_repository.get(payload.order_id)
         if not order:

@@ -50,6 +50,7 @@ export function ReviewsPanel() {
   const matchesSearch = useCallback((row: AdminReview, query: string) => {
     return [
       String(row.product_id),
+      row.product_name ?? "",
       row.customer_name ?? "",
       row.title ?? "",
       row.body ?? "",
@@ -62,7 +63,7 @@ export function ReviewsPanel() {
   const getSortValue = useCallback((row: AdminReview, key: SortKey) => {
     switch (key) {
       case "product":
-        return row.product_id;
+        return row.product_name ?? row.product_id;
       case "customer":
         return row.customer_name ?? "";
       case "rating":
@@ -72,7 +73,7 @@ export function ReviewsPanel() {
       case "approved":
         return row.is_approved;
       default:
-        return row.product_id;
+        return row.product_name ?? row.product_id;
     }
   }, []);
 
@@ -217,7 +218,9 @@ export function ReviewsPanel() {
               ) : (
                 table.pageRows.map((row) => (
                   <tr key={row.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3.5">#{row.product_id}</td>
+                    <td className="px-4 py-3.5 font-medium">
+                      {row.product_name || `Product #${row.product_id.slice(0, 8)}`}
+                    </td>
                     <td className="px-4 py-3.5 font-medium">
                       {row.customer_name || `Customer #${row.customer_id}`}
                     </td>

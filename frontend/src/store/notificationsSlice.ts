@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
+import { normalizeNotification } from "@/lib/mappers";
 import type { NotificationItem, SendTestNotificationInput } from "@/lib/types";
 
 type StateWithAuth = { auth: { token: string | null } };
@@ -17,16 +18,21 @@ const initialState: NotificationsState = {
   error: null,
 };
 
+function mapNotification(raw: unknown): NotificationItem {
+  return normalizeNotification(raw as Record<string, unknown>);
+}
+
 export const fetchNotifications = createAsyncThunk<
   NotificationItem[],
   void,
   { state: StateWithAuth }
 >("notifications/fetch", async (_, { getState }) => {
-  return apiRequest<NotificationItem[]>(
+  const rows = await apiRequest<unknown[]>(
     "/notifications",
     {},
     getState().auth.token,
   );
+  return rows.map(mapNotification);
 });
 
 export const sendTestNotification = createAsyncThunk<
@@ -34,11 +40,24 @@ export const sendTestNotification = createAsyncThunk<
   SendTestNotificationInput,
   { state: StateWithAuth }
 >("notifications/sendTest", async (payload, { getState }) => {
-  return apiRequest<NotificationItem>(
-    "/notifications/test",
-    { method: "POST", body: JSON.stringify(payload) },
+  const channel = payload.channel === "sms" ? "sms" : "email";
+  const row = await apiRequest<unknown>(
+    "/notifications/send",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        channel,
+        template_key: payload.event || "admin_test",
+        recipient: payload.recipient,
+        context: {
+          subject: payload.subject,
+          message: payload.message,
+        },
+      }),
+    },
     getState().auth.token,
   );
+  return mapNotification(row);
 });
 
 const notificationsSlice = createSlice({

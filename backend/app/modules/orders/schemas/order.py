@@ -83,3 +83,10 @@ class OrderResponse(BaseModel):
 
 class OrderCancelRequest(BaseModel):
     reason: str | None = Field(default=None, max_length=255)
+
+
+class OrderStatusUpdateRequest(BaseModel):
+    status: str = Field(
+        pattern=r"^(pending|paid|processing|shipped|delivered|cancelled|refunded|returned)$"
+    )
+    note: str | None = Field(default=None, max_length=255)

@@ -16,6 +16,7 @@ from app.modules.orders.schemas.order import (
     CheckoutRequest,
     OrderCancelRequest,
     OrderResponse,
+    OrderStatusUpdateRequest,
 )
 from app.modules.orders.services.order_service import OrderService
 from app.modules.settings.repositories.coupon_repository import CouponRepository
@@ -55,6 +56,16 @@ def get_order(
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> OrderResponse:
     return get_service(db).get_order(order_id)
+
+
+@router.patch("/{order_id}/status", response_model=OrderResponse)
+def update_order_status(
+    order_id: UUID,
+    payload: OrderStatusUpdateRequest,
+    db: DbSession,
+    _: AdminUser,
+) -> OrderResponse:
+    return get_service(db).update_status(order_id, payload.status, payload.note)
 
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)

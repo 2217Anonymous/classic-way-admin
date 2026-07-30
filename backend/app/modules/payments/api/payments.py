@@ -58,6 +58,14 @@ def list_payments(
     return get_service(db).list_payments()
 
 
+@router.get("/refunds", response_model=list[RefundResponse])
+def list_refunds(
+    db: DbSession,
+    _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
+) -> list[RefundResponse]:
+    return get_service(db).list_refunds()
+
+
 @router.post(
     "/razorpay/create",
     response_model=PaymentResponse,

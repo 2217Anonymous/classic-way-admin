@@ -11,7 +11,8 @@ and the order lifecycle.
 - Checkout: validates the cart, resolves the shipping address, applies a
   coupon (via `settings.CouponRepository`), reserves inventory (via
   `inventory.InventoryItemRepository`), and creates the order
-- Order lifecycle: `pending` → `paid`/`cancelled`/`refunded`, with a full
+- Order lifecycle: `pending` → `paid` → `processing` → `shipped` → `delivered`
+  (plus `cancelled` / `returned` / `refunded`), with a full
   `order_status_history` audit trail
 
 ## Owned data
@@ -30,5 +31,7 @@ and the order lifecycle.
 - `POST /orders/{id}/cancel`: done — releases reserved stock
 - `POST /orders/{id}/mark-paid`: done — deducts stock, also called by the
   `payments` module webhook handler on successful capture
+- `PATCH /orders/{id}/status`: done — strict transitions; reuses mark-paid /
+  cancel / mark-refunded for those targets and records status history
 - Coupons are consumed from `settings.coupons`; tax rules from
   `settings.tax_rules` are not yet applied to order totals (follow-up)

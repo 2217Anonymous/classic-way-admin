@@ -67,6 +67,10 @@ class RefundRepository:
     def __init__(self, db: Session):
         self.db = db
 
+    def list(self) -> list[Refund]:
+        statement = select(Refund).order_by(Refund.created_at.desc())
+        return list(self.db.scalars(statement).all())
+
     def list_for_payment(self, payment_id: UUID) -> list[Refund]:
         statement = (
             select(Refund)

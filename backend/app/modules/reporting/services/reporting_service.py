@@ -1,11 +1,11 @@
-from __future__ import annotations
-
+from datetime import datetime, timezone
+from decimal import Decimal
 import csv
 import io
-from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from app.modules.customers.repositories.customer_repository import CustomerRepository
 from app.modules.fulfillment.repositories import ShipmentRepository
 from app.modules.inventory.repositories.inventory_repository import (
     InventoryItemRepository,
@@ -13,9 +13,10 @@ from app.modules.inventory.repositories.inventory_repository import (
 )
 from app.modules.inventory.services.inventory_service import InventorySettingsService
 from app.modules.orders.repositories.order_repository import OrderRepository
+from app.modules.payments.repositories.payment_repository import RefundRepository
 from app.modules.reporting.schemas.report import ReportSummaryResponse
 
-REVENUE_STATUSES = ["paid", "refunded"]
+REVENUE_STATUSES = ["paid", "processing", "shipped", "delivered", "refunded"]
 CSV_HEADERS = [
     "order_number",
     "status",
@@ -36,6 +37,8 @@ class ReportingService:
         self.order_repository = OrderRepository(db)
         self.inventory_repository = InventoryItemRepository(db)
         self.shipment_repository = ShipmentRepository(db)
+        self.customer_repository = CustomerRepository(db)
+        self.refund_repository = RefundRepository(db)
         self.inventory_settings_service = InventorySettingsService(
             InventorySettingsRepository(db)
         )
@@ -45,6 +48,11 @@ class ReportingService:
         paid_count = self.order_repository.count(status="paid")
         revenue = Decimal(str(self.order_repository.sum_revenue(REVENUE_STATUSES)))
         pending_shipments = self.shipment_repository.count_active()
+        new_customers = len(self.customer_repository.list())
+        total_refunds = sum(
+            (Decimal(str(row.amount)) for row in self.refund_repository.list()),
+            Decimal("0"),
+        )
 
         threshold = self.inventory_settings_service.get_threshold()
         low_stock_count = sum(
@@ -59,6 +67,9 @@ class ReportingService:
             paid_count=paid_count,
             pending_shipments=pending_shipments,
             low_stock_count=low_stock_count,
+            new_customers=new_customers,
+            total_refunds=total_refunds,
+            generated_at=datetime.now(timezone.utc),
         )
 
     def sales_csv(self) -> str:

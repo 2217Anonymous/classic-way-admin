@@ -153,6 +153,7 @@ export type AdminCustomer = {
 export type AdminReview = {
   id: string;
   product_id: string;
+  product_name?: string | null;
   customer_id: string;
   customer_name: string | null;
   rating: number;
@@ -477,13 +478,24 @@ export type OrderItem = {
 };
 
 export type OrderStatus =
+  | "draft"
   | "pending"
   | "paid"
   | "processing"
   | "shipped"
   | "delivered"
   | "cancelled"
-  | "refunded";
+  | "refunded"
+  | "returned";
+
+export type OrderStatusHistoryEntry = {
+  id: string;
+  order_id: string;
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+  created_at: string;
+};
 
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type PaymentMethod = "razorpay" | "cod";
@@ -508,6 +520,7 @@ export type Order = {
   grand_total: number;
   coupon_code: string | null;
   notes: string | null;
+  status_history: OrderStatusHistoryEntry[];
   placed_at: string;
   created_at: string;
   updated_at: string;

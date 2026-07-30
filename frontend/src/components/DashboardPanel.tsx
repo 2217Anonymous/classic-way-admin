@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -18,50 +18,19 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchCustomers } from "@/store/customersSlice";
+import { fetchOrders } from "@/store/ordersSlice";
+import { fetchReports } from "@/store/reportsSlice";
+
 type RevenueRange = "ALL" | "1M" | "6M" | "1Y";
 
-const metricCards = [
-  {
-    title: "Total Earnings",
-    value: "₹55.92L",
-    change: "+16.24%",
-    positive: true,
-    href: "/?tab=reports",
-    linkLabel: "View net earnings",
-    icon: IndianRupee,
-    tone: "green",
-  },
-  {
-    title: "Orders",
-    value: "3,894",
-    change: "-3.57%",
-    positive: false,
-    href: "/?tab=orders",
-    linkLabel: "View all orders",
-    icon: ShoppingBag,
-    tone: "blue",
-  },
-  {
-    title: "Customers",
-    value: "18,335",
-    change: "+29.08%",
-    positive: true,
-    href: "/?tab=users",
-    linkLabel: "See details",
-    icon: Users,
-    tone: "orange",
-  },
-  {
-    title: "My Balance",
-    value: "₹16.58L",
-    change: "+0.00%",
-    positive: true,
-    href: "/?tab=reports",
-    linkLabel: "Withdraw money",
-    icon: Wallet,
-    tone: "sky",
-  },
-] as const;
+function formatCompactCurrency(value: number) {
+  if (value >= 100_000) {
+    return `₹${(value / 100_000).toLocaleString("en-IN", { maximumFractionDigits: 2 })}L`;
+  }
+  return `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
 
 const revenueByRange: Record<
   RevenueRange,
@@ -316,7 +285,7 @@ function statusClass(status: "Paid" | "Pending" | "Unpaid") {
   return "status-pill status-pill-danger";
 }
 
-function metricTone(tone: (typeof metricCards)[number]["tone"]) {
+function metricTone(tone: "green" | "blue" | "orange" | "sky") {
   if (tone === "green") return "dash-metric-icon-green";
   if (tone === "blue") return "dash-metric-icon-blue";
   if (tone === "orange") return "dash-metric-icon-orange";
@@ -504,12 +473,80 @@ function Sparkline({ pct }: { pct: number }) {
 }
 
 export function DashboardPanel({ userName }: { userName?: string | null }) {
+  const dispatch = useAppDispatch();
+  const report = useAppSelector((state) => state.reports.items[0]);
+  const orders = useAppSelector((state) => state.orders.items);
+  const customers = useAppSelector((state) => state.customers.items);
   const [range, setRange] = useState<RevenueRange>("ALL");
-  const revenue = revenueByRange[range];
+  const revenue = useMemo(() => {
+    const base = revenueByRange[range];
+    if (!report) return base;
+    return {
+      ...base,
+      orders: report.total_orders,
+      earnings: formatCompactCurrency(report.total_revenue),
+      refunds: report.total_refunds,
+    };
+  }, [range, report]);
   const firstName = useMemo(
     () => (userName?.trim().split(/\s+/)[0] || "Admin"),
     [userName],
   );
+
+  useEffect(() => {
+    void dispatch(fetchReports());
+    void dispatch(fetchOrders());
+    void dispatch(fetchCustomers());
+  }, [dispatch]);
+
+  const metricCards = useMemo(() => {
+    const totalRevenue = report?.total_revenue ?? 0;
+    const totalOrders = report?.total_orders ?? orders.length;
+    const customerCount = report?.new_customers || customers.length;
+    const balance = Math.max(0, totalRevenue - (report?.total_refunds ?? 0));
+    return [
+      {
+        title: "Total Earnings",
+        value: formatCompactCurrency(totalRevenue),
+        change: report ? "Live" : "…",
+        positive: true as const,
+        href: "/?tab=reports",
+        linkLabel: "View net earnings",
+        icon: IndianRupee,
+        tone: "green" as const,
+      },
+      {
+        title: "Orders",
+        value: totalOrders.toLocaleString("en-IN"),
+        change: report ? "Live" : "…",
+        positive: true as const,
+        href: "/?tab=orders",
+        linkLabel: "View all orders",
+        icon: ShoppingBag,
+        tone: "blue" as const,
+      },
+      {
+        title: "Customers",
+        value: customerCount.toLocaleString("en-IN"),
+        change: report ? "Live" : "…",
+        positive: true as const,
+        href: "/?tab=customers",
+        linkLabel: "See details",
+        icon: Users,
+        tone: "orange" as const,
+      },
+      {
+        title: "Net Balance",
+        value: formatCompactCurrency(balance),
+        change: report ? "After refunds" : "…",
+        positive: true as const,
+        href: "/?tab=reports",
+        linkLabel: "View reports",
+        icon: Wallet,
+        tone: "sky" as const,
+      },
+    ];
+  }, [report, orders.length, customers.length]);
 
   return (
     <div className="dash-page space-y-5">
@@ -525,7 +562,7 @@ export function DashboardPanel({ userName }: { userName?: string | null }) {
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" className="dash-date-btn">
             <CalendarDays size={15} />
-            01 Jul, 2026 to 31 Jul, 2026
+            Store overview
           </button>
           <Link href="/products/new" className="primary-button inline-flex items-center gap-1.5">
             <Plus size={15} /> Add Product

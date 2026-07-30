@@ -1,6 +1,10 @@
 import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
+import {
+  normalizeInventoryItem,
+  normalizeInventorySettings,
+} from "@/lib/mappers";
 import type {
   InventoryItem,
   InventorySettings,
@@ -30,40 +34,62 @@ const initialState: InventoryState = {
   error: null,
 };
 
+function mapItem(raw: unknown, threshold: number): InventoryItem {
+  return normalizeInventoryItem(raw as Record<string, unknown>, threshold);
+}
+
+function mapSettings(raw: unknown): InventorySettings {
+  return normalizeInventorySettings(raw as Record<string, unknown>);
+}
+
 export const fetchInventory = createAsyncThunk<
-  InventoryItem[],
+  { items: InventoryItem[]; settings: InventorySettings },
   void,
   { state: StateWithAuth }
 >("inventory/fetch", async (_, { getState }) => {
-  return apiRequest<InventoryItem[]>(
-    "/inventory",
-    {},
-    getState().auth.token,
+  const token = getState().auth.token;
+  const [settingsRaw, itemsRaw] = await Promise.all([
+    apiRequest<unknown>("/inventory/settings", {}, token),
+    apiRequest<unknown[]>("/inventory/items", {}, token),
+  ]);
+  const settings = mapSettings(settingsRaw);
+  const items = itemsRaw.map((row) =>
+    mapItem(row, settings.default_low_stock_threshold),
   );
+  return { items, settings };
 });
 
 export const adjustStock = createAsyncThunk<
   InventoryItem,
   { id: string; delta: number; reason: string },
-  { state: StateWithAuth }
+  { state: StateWithAuth & { inventory: InventoryState } }
 >("inventory/adjustStock", async ({ id, delta, reason }, { getState }) => {
-  return apiRequest<InventoryItem>(
-    `/inventory/${id}/adjust`,
+  const state = getState();
+  const row = await apiRequest<unknown>(
+    `/inventory/items/${id}/adjust`,
     { method: "POST", body: JSON.stringify({ delta, reason }) },
-    getState().auth.token,
+    state.auth.token,
   );
+  return mapItem(row, state.inventory.settings.default_low_stock_threshold);
 });
 
 export const updateLowStockThreshold = createAsyncThunk<
   InventoryItem,
   { id: string; threshold: number },
-  { state: StateWithAuth }
+  { state: StateWithAuth & { inventory: InventoryState } }
 >("inventory/updateThreshold", async ({ id, threshold }, { getState }) => {
-  return apiRequest<InventoryItem>(
-    `/inventory/${id}`,
-    { method: "PATCH", body: JSON.stringify({ low_stock_threshold: threshold }) },
-    getState().auth.token,
-  );
+  // Backend has a global threshold only; apply locally for the edited row.
+  const current = getState().inventory.items.find((item) => item.id === id);
+  if (!current) {
+    throw new Error("Inventory item not found");
+  }
+  const available = current.available;
+  return {
+    ...current,
+    low_stock_threshold: threshold,
+    is_low_stock: available > 0 && available <= threshold,
+    is_out_of_stock: available <= 0,
+  };
 });
 
 export const updateInventorySettings = createAsyncThunk<
@@ -71,11 +97,21 @@ export const updateInventorySettings = createAsyncThunk<
   InventorySettingsInput,
   { state: StateWithAuth }
 >("inventory/updateSettings", async (payload, { getState }) => {
-  return apiRequest<InventorySettings>(
+  const row = await apiRequest<unknown>(
     "/inventory/settings",
-    { method: "PATCH", body: JSON.stringify(payload) },
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        low_stock_threshold: payload.default_low_stock_threshold,
+      }),
+    },
     getState().auth.token,
   );
+  const settings = mapSettings(row);
+  return {
+    ...settings,
+    backorders_allowed: payload.backorders_allowed,
+  };
 });
 
 const inventorySlice = createSlice({
@@ -90,7 +126,8 @@ const inventorySlice = createSlice({
       })
       .addCase(fetchInventory.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = action.payload.items;
+        state.settings = action.payload.settings;
       })
       .addCase(adjustStock.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
@@ -102,6 +139,13 @@ const inventorySlice = createSlice({
       })
       .addCase(updateInventorySettings.fulfilled, (state, action) => {
         state.settings = action.payload;
+        const threshold = action.payload.default_low_stock_threshold;
+        state.items = state.items.map((item) => ({
+          ...item,
+          low_stock_threshold: threshold,
+          is_low_stock: item.available > 0 && item.available <= threshold,
+          is_out_of_stock: item.available <= 0,
+        }));
       })
       .addMatcher(
         isAnyOf(

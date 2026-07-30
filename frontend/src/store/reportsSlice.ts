@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
+import { normalizeReportSummary } from "@/lib/mappers";
 import type { ReportSummary } from "@/lib/types";
 
 type StateWithAuth = { auth: { token: string | null } };
@@ -22,7 +23,12 @@ export const fetchReports = createAsyncThunk<
   void,
   { state: StateWithAuth }
 >("reports/fetch", async (_, { getState }) => {
-  return apiRequest<ReportSummary[]>("/reports", {}, getState().auth.token);
+  const raw = await apiRequest<Record<string, unknown>>(
+    "/reports/summary",
+    {},
+    getState().auth.token,
+  );
+  return [normalizeReportSummary(raw)];
 });
 
 const reportsSlice = createSlice({
