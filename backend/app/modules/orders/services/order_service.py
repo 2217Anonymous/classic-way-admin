@@ -7,24 +7,38 @@ from decimal import Decimal
 from uuid import UUID
 
 from app.modules.catalog.repositories.product_repository import ProductRepository
-from app.modules.inventory.repositories import InventoryItemRepository
+from app.modules.inventory.repositories.inventory_repository import InventoryItemRepository
 from app.modules.orders.models.order import Order, OrderItem, OrderStatusHistory
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
 from app.modules.orders.repositories.order_repository import OrderRepository
 from app.modules.orders.schemas.order import (
+    AdminOrderCreateRequest,
     CheckoutRequest,
     OrderItemResponse,
     OrderResponse,
     OrderStatusHistoryResponse,
 )
-from app.modules.settings.repositories import CouponRepository
-from app.utils.exceptions import AppError, NotFoundError
+from app.modules.settings.repositories.coupon_repository import CouponRepository
+from app.utils.exceptions import AppError, ConflictError, NotFoundError
 
-CANCELLABLE_STATUSES = {"draft", "pending", "paid"}
+CANCELLABLE_STATUSES = {"draft", "pending", "paid", "processing"}
 PAYABLE_STATUSES = {"draft", "pending"}
 FREE_SHIPPING_THRESHOLD = Decimal("999")
 STANDARD_SHIPPING = Decimal("59")
+
+# Strict admin-controlled transitions (matches frontend OrderStatus values).
+ALLOWED_STATUS_TRANSITIONS: dict[str, set[str]] = {
+    "draft": {"pending", "paid", "cancelled"},
+    "pending": {"paid", "cancelled", "processing"},
+    "paid": {"processing", "cancelled", "refunded"},
+    "processing": {"shipped", "cancelled"},
+    "shipped": {"delivered"},
+    "delivered": {"returned", "refunded"},
+    "returned": {"refunded"},
+    "cancelled": set(),
+    "refunded": set(),
+}
 
 
 def generate_order_number() -> str:
@@ -117,6 +131,101 @@ class OrderService:
 
         return self._to_response(self.repository.get(order.id) or order)
 
+    def create_admin_order(self, payload: AdminOrderCreateRequest) -> OrderResponse:
+        requested_stock: dict[tuple[UUID, UUID | None], int] = {}
+        for line in payload.items:
+            product = (
+                self.product_repository.get(line.product_id)
+                if self.product_repository
+                else None
+            )
+            if not product:
+                raise NotFoundError(f"Product '{line.product_id}' not found")
+            if line.variant_id and not any(
+                variant.id == line.variant_id for variant in product.variants
+            ):
+                raise NotFoundError(
+                    f"Variant '{line.variant_id}' not found for '{line.product_name}'"
+                )
+            key = (line.product_id, line.variant_id)
+            requested_stock[key] = requested_stock.get(key, 0) + line.quantity
+
+        for (product_id, variant_id), quantity in requested_stock.items():
+            inventory = self._get_or_create_inventory_item(product_id, variant_id)
+            if inventory and inventory.quantity - inventory.reserved < quantity:
+                raise ConflictError("Insufficient stock for one or more order items")
+
+        subtotal = sum(
+            (item.unit_price * item.quantity for item in payload.items), Decimal("0")
+        )
+        shipping_amount = (
+            payload.shipping_amount
+            if payload.shipping_amount is not None
+            else (
+                Decimal("0")
+                if subtotal >= FREE_SHIPPING_THRESHOLD
+                else STANDARD_SHIPPING
+            )
+        )
+        total = max(
+            subtotal
+            - payload.discount_amount
+            + shipping_amount
+            + payload.tax_amount,
+            Decimal("0"),
+        )
+        address = payload.shipping_address
+        order = self.repository.create(
+            order_number=self._unique_order_number(),
+            customer_id=payload.customer_id,
+            status=payload.status,
+            payment_method=payload.payment_method,
+            subtotal=subtotal,
+            shipping_amount=shipping_amount,
+            tax_amount=payload.tax_amount,
+            discount_amount=payload.discount_amount,
+            total=total,
+            currency="INR",
+            shipping_name=address.full_name or payload.customer_name,
+            shipping_phone=address.phone or payload.customer_phone,
+            shipping_line1=address.line1,
+            shipping_line2=address.line2,
+            shipping_city=address.city,
+            shipping_state=address.state,
+            shipping_postal_code=address.postal_code,
+            shipping_country=address.country,
+            coupon_code=payload.coupon_code,
+            notes=payload.notes,
+        )
+
+        for line in payload.items:
+            self.repository.add_item(
+                OrderItem(
+                    order_id=order.id,
+                    product_id=line.product_id,
+                    variant_id=line.variant_id,
+                    sku=line.sku,
+                    name=line.product_name,
+                    quantity=line.quantity,
+                    unit_price=line.unit_price,
+                    line_total=line.unit_price * line.quantity,
+                )
+            )
+            self._reserve_stock(line.product_id, line.variant_id, line.quantity)
+
+        self.repository.add_status_history(
+            OrderStatusHistory(
+                order_id=order.id,
+                from_status=None,
+                to_status=payload.status,
+                note="Order created by admin",
+            )
+        )
+        fresh = self.repository.get(order.id) or order
+        if payload.status == "paid":
+            self._deduct_stock(fresh)
+        return self._to_response(self.repository.get(order.id) or fresh)
+
     def list_orders(self, status: str | None = None) -> list[OrderResponse]:
         return [self._to_response(order) for order in self.repository.list(status)]
 
@@ -185,6 +294,40 @@ class OrderService:
                 from_status=previous,
                 to_status="refunded",
                 note=note or "Refund processed",
+            )
+        )
+        return self._to_response(self.repository.get(order.id) or order)
+
+    def update_status(
+        self, order_id: UUID, status: str, note: str | None = None
+    ) -> OrderResponse:
+        order = self._get_or_404(order_id)
+        target = status.strip().lower()
+        if order.status == target:
+            return self._to_response(order)
+
+        allowed = ALLOWED_STATUS_TRANSITIONS.get(order.status, set())
+        if target not in allowed:
+            raise ConflictError(
+                f"Cannot transition order from '{order.status}' to '{target}'"
+            )
+
+        if target == "paid":
+            return self.mark_paid(order_id, note=note or "Marked paid")
+        if target == "cancelled":
+            return self.cancel_order(order_id, reason=note)
+        if target == "refunded":
+            return self.mark_refunded(order_id, note=note)
+
+        previous = order.status
+        order.status = target
+        self.repository.save(order)
+        self.repository.add_status_history(
+            OrderStatusHistory(
+                order_id=order.id,
+                from_status=previous,
+                to_status=target,
+                note=note or f"Status updated to {target}",
             )
         )
         return self._to_response(self.repository.get(order.id) or order)

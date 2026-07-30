@@ -108,11 +108,34 @@ class ProductMedia(Base):
         ForeignKey("products.id", ondelete="CASCADE"),
         index=True,
     )
+    # Legacy display path/URL kept for backward compatibility with existing rows.
     url: Mapped[str] = mapped_column(String(500))
     alt_text: Mapped[str | None] = mapped_column(String(200), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    storage_provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    original_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    original_mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    original_file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    original_width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    original_height: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    large_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    medium_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    thumbnail_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    large_file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    medium_file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    thumbnail_file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    width: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    height: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
 
     product: Mapped[Product] = relationship("Product", back_populates="media")
 

@@ -16,6 +16,7 @@ class ReviewImageResponse(BaseModel):
 class ReviewResponse(BaseModel):
     id: UUID
     product_id: UUID
+    product_name: str | None = None
     customer_id: UUID
     customer_name: str | None = None
     rating: int

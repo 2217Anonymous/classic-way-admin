@@ -1464,3 +1464,33 @@ button:disabled {
 .product-list-table tbody tr:hover {
   background: #f3f6f9;
 }
+
+/* Order module typography is intentionally larger for readability. */
+.order-module,
+.order-module p,
+.order-module span,
+.order-module a,
+.order-module button,
+.order-module input,
+.order-module select,
+.order-module textarea,
+.order-module td {
+  font-size: 0.875rem !important;
+  line-height: 1.45;
+}
+
+.order-module th,
+.order-module label {
+  font-size: 0.8125rem !important;
+  line-height: 1.4;
+}
+
+.order-module h2 {
+  font-size: 1.125rem !important;
+  line-height: 1.4;
+}
+
+.order-module h3 {
+  font-size: 1rem !important;
+  line-height: 1.4;
+}

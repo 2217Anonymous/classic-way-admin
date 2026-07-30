@@ -139,7 +139,7 @@ export function ProductDetailsPage({ productId }: { productId: string }) {
       return a.is_primary ? -1 : 1;
     });
     const urls = media
-      .map((item) => mediaUrl(item.url))
+      .map((item) => mediaUrl(item.large_url || item.url))
       .filter((url): url is string => Boolean(url));
     if (urls.length === 0 && product.primary_image_url) {
       const primary = mediaUrl(product.primary_image_url);

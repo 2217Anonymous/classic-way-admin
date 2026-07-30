@@ -3,6 +3,10 @@
 Sandbox Razorpay-style payment orchestration. No real Razorpay keys are
 required — provider order/payment IDs are generated as `*_demo_*` strings.
 
+## Package layout
+
+`api/`, `models/`, `repositories/`, `schemas/`, `services/`
+
 ## Responsibilities
 
 - Create a "Razorpay" payment intent for a pending order

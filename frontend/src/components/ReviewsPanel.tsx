@@ -21,7 +21,7 @@ import {
   moderateReview,
 } from "@/store/reviewsSlice";
 
-type SortKey = "id" | "product" | "customer" | "rating" | "title" | "approved";
+type SortKey = "product" | "customer" | "rating" | "title" | "approved";
 
 export function ReviewsPanel() {
   const dispatch = useAppDispatch();
@@ -50,6 +50,7 @@ export function ReviewsPanel() {
   const matchesSearch = useCallback((row: AdminReview, query: string) => {
     return [
       String(row.product_id),
+      row.product_name ?? "",
       row.customer_name ?? "",
       row.title ?? "",
       row.body ?? "",
@@ -61,10 +62,8 @@ export function ReviewsPanel() {
 
   const getSortValue = useCallback((row: AdminReview, key: SortKey) => {
     switch (key) {
-      case "id":
-        return row.id;
       case "product":
-        return row.product_id;
+        return row.product_name ?? row.product_id;
       case "customer":
         return row.customer_name ?? "";
       case "rating":
@@ -74,13 +73,13 @@ export function ReviewsPanel() {
       case "approved":
         return row.is_approved;
       default:
-        return row.id;
+        return row.product_name ?? row.product_id;
     }
   }, []);
 
   const table = useTableState<AdminReview, SortKey>({
     rows: filtered,
-    initialSort: { key: "id", direction: "desc" },
+    initialSort: { key: "rating", direction: "desc" },
     getSortValue,
     matchesSearch,
   });
@@ -160,13 +159,6 @@ export function ReviewsPanel() {
             <thead className="table-head">
               <tr>
                 <SortableTh
-                  label="ID"
-                  sortKey="id"
-                  activeKey={table.sort.key}
-                  direction={table.sort.direction}
-                  onSort={table.toggleSort}
-                />
-                <SortableTh
                   label="Product"
                   sortKey="product"
                   activeKey={table.sort.key}
@@ -208,7 +200,7 @@ export function ReviewsPanel() {
               {loading && items.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={6}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     Loading reviews…
@@ -217,7 +209,7 @@ export function ReviewsPanel() {
               ) : table.pageRows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={6}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     No reviews found.
@@ -226,8 +218,9 @@ export function ReviewsPanel() {
               ) : (
                 table.pageRows.map((row) => (
                   <tr key={row.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3.5 text-slate-500">#{row.id}</td>
-                    <td className="px-4 py-3.5">#{row.product_id}</td>
+                    <td className="px-4 py-3.5 font-medium">
+                      {row.product_name || `Product #${row.product_id.slice(0, 8)}`}
+                    </td>
                     <td className="px-4 py-3.5 font-medium">
                       {row.customer_name || `Customer #${row.customer_id}`}
                     </td>

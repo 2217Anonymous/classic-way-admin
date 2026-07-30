@@ -474,7 +474,6 @@ export function CategoriesPanel() {
                   indeterminate={selection.someSelected}
                   onChange={selection.togglePage}
                 />
-                <StaticTh label="ID" />
                 <SortableTh
                   label="Category"
                   sortKey="name"
@@ -531,7 +530,6 @@ export function CategoriesPanel() {
                     onChange={() => selection.toggleOne(row.id)}
                     label={`Select ${row.name}`}
                   />
-                  <td className="px-4 py-3.5 text-slate-500">#{row.id}</td>
                   <td className="px-4 py-3.5">
                     <div className="flex min-w-0 items-center">
                       <TreeGuides depth={row.depth} />

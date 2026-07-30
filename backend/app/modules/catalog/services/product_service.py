@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import logging
 import re
 import uuid
-from uuid import UUID
 from decimal import Decimal
 from pathlib import Path
+from uuid import UUID
 
 from fastapi import UploadFile
 from sqlalchemy.exc import IntegrityError
 
+from app.core.config import settings
+from app.core.images.processing import process_uploaded_image
+from app.core.storage import get_storage_provider
+from app.core.storage.base import StorageProvider
 from app.modules.catalog.models.product import (
     Product,
     ProductAttribute,
@@ -30,14 +35,10 @@ from app.modules.catalog.schemas.product import (
 )
 from app.utils.exceptions import AppError, ConflictError, NotFoundError
 
-UPLOAD_ROOT = Path("uploads")
+logger = logging.getLogger(__name__)
+
+UPLOAD_ROOT = Path(settings.local_upload_root)
 PRODUCT_UPLOAD_DIR = UPLOAD_ROOT / "products"
-ALLOWED_IMAGE_TYPES = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-}
-MAX_IMAGE_BYTES = 2 * 1024 * 1024
 ALLOWED_VISIBILITY = {"public", "catalog", "hidden"}
 
 
@@ -48,16 +49,31 @@ def slugify(value: str) -> str:
     return slug[:170] or "product"
 
 
+def product_media_variant_keys(product_id: UUID, media_id: UUID) -> dict[str, str]:
+    base = f"products/{product_id}/{media_id}"
+    return {
+        "large": f"{base}/large.webp",
+        "medium": f"{base}/medium.webp",
+        "thumbnail": f"{base}/thumbnail.webp",
+    }
+
+
+def temp_original_key(upload_id: UUID) -> str:
+    return f"temp/product-media/{upload_id}/original"
+
+
 class ProductService:
     def __init__(
         self,
         repository: ProductRepository,
         category_repository: CategoryRepository,
         brand_repository: BrandRepository | None = None,
+        storage: StorageProvider | None = None,
     ):
         self.repository = repository
         self.category_repository = category_repository
         self.brand_repository = brand_repository
+        self.storage = storage or get_storage_provider()
 
     def list_products(self) -> list[ProductResponse]:
         return [self._to_response(product) for product in self.repository.list()]
@@ -207,10 +223,10 @@ class ProductService:
         product = self.repository.get(product_id)
         if not product:
             raise NotFoundError("Product not found")
-        image_paths = [item.url for item in product.media]
+        media_rows = list(product.media)
         self.repository.delete(product)
-        for image_url in image_paths:
-            self._delete_image_file(image_url)
+        for media in media_rows:
+            self._delete_media_files(media)
 
     async def upload_media(
         self, product_id: UUID, upload: UploadFile, alt_text: str | None = None
@@ -219,31 +235,75 @@ class ProductService:
         if not product:
             raise NotFoundError("Product not found")
 
-        content_type = (upload.content_type or "").lower()
-        extension = ALLOWED_IMAGE_TYPES.get(content_type)
-        if not extension:
-            raise AppError("Only JPEG, PNG, or WebP images are allowed", 400)
-
         data = await upload.read()
-        if not data:
-            raise AppError("Uploaded image is empty", 400)
-        if len(data) > MAX_IMAGE_BYTES:
-            raise AppError("Image must be 2MB or smaller", 400)
-
-        PRODUCT_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        filename = f"{product.id}_{uuid.uuid4().hex}{extension}"
-        destination = PRODUCT_UPLOAD_DIR / filename
-        destination.write_bytes(data)
-
-        is_primary = len(product.media) == 0
-        media = ProductMedia(
-            product_id=product.id,
-            url=f"/uploads/products/{filename}",
-            alt_text=alt_text.strip() if alt_text else product.name,
-            sort_order=len(product.media),
-            is_primary=is_primary,
+        processed = process_uploaded_image(
+            data,
+            content_type=upload.content_type,
+            filename=upload.filename,
+            max_bytes=settings.max_image_upload_bytes,
         )
-        self.repository.add_media(media)
+
+        media_id = uuid.uuid4()
+        upload_id = uuid.uuid4()
+        temp_key = temp_original_key(upload_id)
+        variant_keys = product_media_variant_keys(product.id, media_id)
+        stored_keys: list[str] = []
+
+        try:
+            self.storage.save_bytes(
+                temp_key,
+                data,
+                content_type=processed.original.content_type,
+            )
+            stored_keys.append(temp_key)
+
+            for variant_name, variant in (
+                ("large", processed.large),
+                ("medium", processed.medium),
+                ("thumbnail", processed.thumbnail),
+            ):
+                key = variant_keys[variant_name]
+                self.storage.save_bytes(
+                    key,
+                    variant.data,
+                    content_type=variant.content_type,
+                )
+                stored_keys.append(key)
+
+            large_url = self.storage.get_url(variant_keys["large"])
+            is_primary = len(product.media) == 0
+            media = ProductMedia(
+                id=media_id,
+                product_id=product.id,
+                url=large_url,
+                alt_text=alt_text.strip() if alt_text else product.name,
+                sort_order=len(product.media),
+                is_primary=is_primary,
+                storage_provider=self.storage.provider_name,
+                original_filename=upload.filename,
+                original_mime_type=processed.original.content_type,
+                original_file_size=processed.original.file_size,
+                original_width=processed.original.width,
+                original_height=processed.original.height,
+                large_storage_key=variant_keys["large"],
+                medium_storage_key=variant_keys["medium"],
+                thumbnail_storage_key=variant_keys["thumbnail"],
+                large_file_size=processed.large.file_size,
+                medium_file_size=processed.medium.file_size,
+                thumbnail_file_size=processed.thumbnail.file_size,
+                width=processed.large.width,
+                height=processed.large.height,
+            )
+            self.repository.add_media(media)
+        except Exception:
+            self.storage.delete_many(stored_keys)
+            raise
+        else:
+            try:
+                self.storage.delete(temp_key)
+            except Exception:
+                logger.exception("Failed to delete temporary upload %s", temp_key)
+
         refreshed = self.repository.get(product.id)
         return self._to_response(refreshed or product)
 
@@ -256,9 +316,9 @@ class ProductService:
             raise NotFoundError("Product media not found")
 
         was_primary = media.is_primary
-        image_url = media.url
+        # Delete storage objects first so a storage failure does not leave DB orphans.
+        self._delete_media_files(media, raise_on_error=True)
         self.repository.delete_media(media)
-        self._delete_image_file(image_url)
 
         refreshed = self.repository.get(product_id)
         if refreshed and was_primary and refreshed.media:
@@ -329,16 +389,50 @@ class ProductService:
         ]
         return self.repository.replace_variants(product, rows)
 
+    def _media_to_response(self, media: ProductMedia) -> ProductMediaResponse:
+        large_url, medium_url, thumbnail_url = self._resolve_media_urls(media)
+        return ProductMediaResponse(
+            id=media.id,
+            product_id=media.product_id,
+            url=large_url,
+            large_url=large_url,
+            medium_url=medium_url,
+            thumbnail_url=thumbnail_url,
+            original_filename=getattr(media, "original_filename", None),
+            alt_text=media.alt_text,
+            sort_order=media.sort_order,
+            is_primary=media.is_primary,
+            created_at=media.created_at,
+            updated_at=getattr(media, "updated_at", None),
+        )
+
+    def _resolve_media_urls(self, media: ProductMedia) -> tuple[str, str, str]:
+        """Return (large, medium, thumbnail) public URLs with legacy fallback."""
+        large_key = getattr(media, "large_storage_key", None)
+        medium_key = getattr(media, "medium_storage_key", None)
+        thumbnail_key = getattr(media, "thumbnail_storage_key", None)
+
+        if large_key and medium_key and thumbnail_key:
+            return (
+                self.storage.get_url(large_key),
+                self.storage.get_url(medium_key),
+                self.storage.get_url(thumbnail_key),
+            )
+
+        legacy = media.url
+        return legacy, legacy, legacy
+
     def _to_response(self, product: Product) -> ProductResponse:
         media = [
-            ProductMediaResponse.model_validate(item)
-            for item in sorted(
-                product.media, key=lambda row: (row.sort_order, row.id)
-            )
+            self._media_to_response(item)
+            for item in sorted(product.media, key=lambda row: (row.sort_order, row.id))
         ]
-        primary = next((item.url for item in media if item.is_primary), None)
-        if not primary and media:
-            primary = media[0].url
+        primary_item = next((item for item in media if item.is_primary), None)
+        if not primary_item and media:
+            primary_item = media[0]
+        primary = None
+        if primary_item:
+            primary = primary_item.medium_url or primary_item.url
 
         category_name = None
         if product.category_id:
@@ -468,9 +562,40 @@ class ProductService:
         cleaned = value.strip()
         return cleaned or None
 
-    def _delete_image_file(self, image_url: str) -> None:
-        if not image_url.startswith("/uploads/products/"):
+    def _delete_media_files(
+        self, media: ProductMedia, *, raise_on_error: bool = False
+    ) -> None:
+        keys = [
+            key
+            for key in (
+                getattr(media, "large_storage_key", None),
+                getattr(media, "medium_storage_key", None),
+                getattr(media, "thumbnail_storage_key", None),
+            )
+            if key
+        ]
+        if keys:
+            try:
+                self.storage.delete_many(keys)
+            except Exception as exc:
+                logger.exception("Failed deleting media variants for %s", media.id)
+                if raise_on_error:
+                    raise AppError(
+                        "Failed to delete media files from storage", 500
+                    ) from exc
             return
-        path = Path(image_url.lstrip("/"))
-        if path.exists() and path.is_file():
-            path.unlink()
+
+        image_url = media.url or ""
+        if image_url.startswith("/uploads/products/"):
+            candidate = UPLOAD_ROOT / image_url.removeprefix("/uploads/")
+            path = Path(image_url.lstrip("/"))
+            target = candidate if candidate.is_file() else path
+            try:
+                if target.exists() and target.is_file():
+                    target.unlink()
+            except OSError as exc:
+                logger.exception("Failed deleting legacy media file %s", image_url)
+                if raise_on_error:
+                    raise AppError(
+                        "Failed to delete media files from storage", 500
+                    ) from exc

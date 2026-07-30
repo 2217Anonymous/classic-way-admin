@@ -50,6 +50,7 @@ class ShipmentEventResponse(BaseModel):
 class ShipmentResponse(BaseModel):
     id: UUID
     order_id: UUID
+    order_number: str | None = None
     courier_provider: str
     awb: str | None
     label_url: str | None

@@ -8,17 +8,19 @@ from app.modules.iam.api.dependencies import AdminUser, require_roles
 from app.modules.iam.constants import MANAGER_ROLE, VIEWER_ROLE
 from app.modules.identity.api.dependencies import DbSession
 from app.modules.identity.models.user import User
-from app.modules.inventory.repositories import InventoryItemRepository
+from app.modules.inventory.repositories.inventory_repository import InventoryItemRepository
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
 from app.modules.orders.repositories.order_repository import OrderRepository
 from app.modules.orders.schemas.order import (
+    AdminOrderCreateRequest,
     CheckoutRequest,
     OrderCancelRequest,
     OrderResponse,
+    OrderStatusUpdateRequest,
 )
 from app.modules.orders.services.order_service import OrderService
-from app.modules.settings.repositories import CouponRepository
+from app.modules.settings.repositories.coupon_repository import CouponRepository
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -39,6 +41,13 @@ def checkout(payload: CheckoutRequest, db: DbSession) -> OrderResponse:
     return get_service(db).checkout(payload)
 
 
+@router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
+def create_order(
+    payload: AdminOrderCreateRequest, db: DbSession, _: AdminUser
+) -> OrderResponse:
+    return get_service(db).create_admin_order(payload)
+
+
 @router.get("", response_model=list[OrderResponse])
 def list_orders(
     db: DbSession,
@@ -55,6 +64,16 @@ def get_order(
     _: Annotated[User, Depends(require_roles(MANAGER_ROLE, VIEWER_ROLE))],
 ) -> OrderResponse:
     return get_service(db).get_order(order_id)
+
+
+@router.patch("/{order_id}/status", response_model=OrderResponse)
+def update_order_status(
+    order_id: UUID,
+    payload: OrderStatusUpdateRequest,
+    db: DbSession,
+    _: AdminUser,
+) -> OrderResponse:
+    return get_service(db).update_status(order_id, payload.status, payload.note)
 
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)

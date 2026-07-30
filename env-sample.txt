@@ -1,10 +1,16 @@
+# Copy into backend/.env (never commit real secrets).
+
+APP_NAME=Valaiyagam E-commerce Admin API
 APP_ENV=development
+API_V1_PREFIX=/api/v1
+
+# Required — min 32 chars. Generate: python -c "import secrets; print(secrets.token_urlsafe(48))"
 SECRET_KEY=dev-secret-change-me-in-production-32chars
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 REFRESH_TOKEN_EXPIRE_DAYS=30
 CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# PostgreSQL (MySQL removed)
+# PostgreSQL — POSTGRES_PASSWORD is required
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5434
 POSTGRES_DB=classic_way
@@ -18,4 +24,16 @@ INITIAL_ADMIN_NAME=System Admin
 
 PAYMENT_PROVIDER=cod
 PAYMENT_SECRET=
+
+# Storage: local (dev) or s3 (production)
 STORAGE_PROVIDER=local
+LOCAL_UPLOAD_ROOT=uploads
+MAX_IMAGE_UPLOAD_SIZE_MB=10
+
+# Required when STORAGE_PROVIDER=s3 (backend only — never NEXT_PUBLIC_*)
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=ap-south-1
+AWS_S3_BUCKET_NAME=
+AWS_S3_PUBLIC_BASE_URL=
+AWS_CLOUDFRONT_DOMAIN=

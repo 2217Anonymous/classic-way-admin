@@ -57,11 +57,17 @@ export type CategoryInput = {
 export type ProductMedia = {
   id: string;
   product_id: string;
+  /** Resolved large image URL (backward compatible). */
   url: string;
+  large_url?: string | null;
+  medium_url?: string | null;
+  thumbnail_url?: string | null;
+  original_filename?: string | null;
   alt_text: string | null;
   sort_order: number;
   is_primary: boolean;
   created_at: string;
+  updated_at?: string | null;
 };
 
 export type ProductAttribute = {
@@ -147,6 +153,7 @@ export type AdminCustomer = {
 export type AdminReview = {
   id: string;
   product_id: string;
+  product_name?: string | null;
   customer_id: string;
   customer_name: string | null;
   rating: number;
@@ -253,6 +260,47 @@ export type StoreSettingsInput = {
   country?: string | null;
   currency?: string;
   timezone?: string;
+};
+
+export type ThemePageVisibility = {
+  about_us: boolean;
+  contact_us: boolean;
+  cart: boolean;
+  checkout: boolean;
+  compare: boolean;
+  faq: boolean;
+  login: boolean;
+  register: boolean;
+  wishlist: boolean;
+  terms: boolean;
+  track_order: boolean;
+};
+
+export type ThemeSettings = {
+  id: string;
+  customer_id: string | null;
+  home_theme: string;
+  shop_category: string;
+  shop_layout: string;
+  product_layout: string;
+  blog_layout: string;
+  page_visibility: ThemePageVisibility;
+  theme_config: Record<string, unknown> | null;
+  is_default: boolean;
+  is_active: boolean;
+  source?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ThemeSettingsInput = {
+  home_theme: string;
+  shop_category: string;
+  shop_layout: string;
+  product_layout: string;
+  blog_layout: string;
+  page_visibility: ThemePageVisibility;
+  theme_config?: Record<string, unknown> | null;
 };
 
 export type TaxRule = {
@@ -430,13 +478,24 @@ export type OrderItem = {
 };
 
 export type OrderStatus =
+  | "draft"
   | "pending"
   | "paid"
   | "processing"
   | "shipped"
   | "delivered"
   | "cancelled"
-  | "refunded";
+  | "refunded"
+  | "returned";
+
+export type OrderStatusHistoryEntry = {
+  id: string;
+  order_id: string;
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+  created_at: string;
+};
 
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type PaymentMethod = "razorpay" | "cod";
@@ -461,12 +520,14 @@ export type Order = {
   grand_total: number;
   coupon_code: string | null;
   notes: string | null;
+  status_history: OrderStatusHistoryEntry[];
   placed_at: string;
   created_at: string;
   updated_at: string;
 };
 
 export type CreateOrderInput = {
+  customer_id?: string | null;
   customer_name: string;
   customer_email?: string | null;
   customer_phone?: string | null;
@@ -484,6 +545,7 @@ export type CreateOrderInput = {
   shipping_address: CustomerAddressInput;
   billing_address?: CustomerAddressInput | null;
   payment_method: PaymentMethod;
+  status?: "draft" | "pending" | "paid";
   coupon_code?: string | null;
   discount_total?: number;
   shipping_total?: number;

@@ -3,6 +3,10 @@
 Read-only KPIs and exports aggregated from `orders`, `payments`,
 `fulfillment`, and `inventory`. Owns no tables of its own.
 
+## Package layout
+
+`api/`, `schemas/`, `services/` (no `models/` / `repositories/`)
+
 ## Responsibilities
 
 - Store-wide KPI summary (orders, revenue, paid orders, pending shipments,

@@ -23,7 +23,7 @@ from app.modules.customers.schemas.commerce import (
 )
 from app.modules.customers.services.storefront_cart_service import StorefrontCartService
 from app.modules.fulfillment.repositories import ShipmentRepository
-from app.modules.inventory.repositories import InventoryItemRepository
+from app.modules.inventory.repositories.inventory_repository import InventoryItemRepository
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
 from app.modules.orders.repositories.order_repository import OrderRepository
@@ -34,14 +34,14 @@ from app.modules.orders.services.order_service import (
     STANDARD_SHIPPING,
     OrderService,
 )
-from app.modules.payments.repositories import (
+from app.modules.payments.repositories.payment_repository import (
     PaymentEventRepository,
     PaymentRepository,
     RefundRepository,
 )
-from app.modules.payments.schemas import PaymentCreateRequest, PaymentResponse
-from app.modules.payments.services import PaymentService
-from app.modules.settings.repositories import CouponRepository
+from app.modules.payments.schemas.payment import PaymentCreateRequest, PaymentResponse
+from app.modules.payments.services.payment_service import PaymentService
+from app.modules.settings.repositories.coupon_repository import CouponRepository
 from app.utils.exceptions import AppError, AuthorizationError, NotFoundError
 
 

@@ -35,30 +35,52 @@ Reference dump (all tables, sequences, constraints, indexes):
 
 `database/schema/complete_schema.sql`
 
-**Primary keys & foreign keys use PostgreSQL `uuid`** (generated in app via `uuid4`). Integer IDs are not used for entity keys.
-
-Tables include: users/roles, customers/addresses, brands, categories, products (+ media, variants, attributes), inventory, carts, wishlists, compare, orders/payments/shipments, coupons, reviews/feedback, store settings, notifications, and Alembic version tracking.
-
-Apply schema via migrations (preferred), not by hand-running the dump:
+**Primary keys & foreign keys use PostgreSQL `uuid`**. Apply schema via migrations:
 
 ```bash
 cd classic-way-admin/backend
 alembic upgrade head
 ```
 
-Admin API container runs `alembic upgrade head` on start.
+## T-Shirt seed (SQL pack)
+
+Full ecommerce seed for listing, filters, cart, checkout, orders, payments,
+shipments, reviews, and admin dashboard:
+
+| Path | Purpose |
+|------|---------|
+| `database/seeds/sql/` | Transaction-safe SQL scripts (`00`–`06` + verify) |
+| `database/seeds/generate_tshirt_sql.py` | Regenerates the SQL pack |
+| `database/seeds/tshirt_full_seed.py` | ORM seed (real password hashes) |
+
+```bash
+# Generate / refresh SQL files
+python database/seeds/generate_tshirt_sql.py
+
+# Apply (after migrations)
+psql "postgresql://classic_way:classic_way@localhost:5434/classic_way" -v ON_ERROR_STOP=1 \
+  -f database/seeds/sql/00_reset_seed_data.sql \
+  -f database/seeds/sql/01_master_catalog.sql \
+  -f database/seeds/sql/02_products_variants_media_inventory.sql \
+  -f database/seeds/sql/03_coupons.sql \
+  -f database/seeds/sql/04_customers_wishlist_cart.sql \
+  -f database/seeds/sql/05_orders_payments_shipments.sql \
+  -f database/seeds/sql/06_reviews_notifications.sql \
+  -f database/seeds/sql/99_verify_counts.sql
+```
+
+Or seed via ORM (recommended for customer login hashes):
+
+```bash
+PYTHONPATH=backend python database/seeds/tshirt_full_seed.py --reset
+```
+
+Demo customer password (ORM seed): `Customer123!`
+
+See `database/seeds/sql/README.md` for schema notes and S3 image URL swap examples.
 
 ## Bootstrap
 
-`database/schema/init.sql` — extensions only (`pgcrypto`, `uuid-ossp`), loaded by Postgres docker entrypoint.
-
-## Seed (optional)
-
-```bash
-cd classic-way-admin
-python database/seeds/fashion_seed.py
-```
-
-Seeds write into Postgres so shopping/admin UIs show real catalog rows.
+`database/schema/init.sql` — extensions only (`pgcrypto`, `uuid-ossp`).
 
 MySQL is not used.

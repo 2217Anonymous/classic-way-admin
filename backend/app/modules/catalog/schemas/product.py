@@ -83,10 +83,15 @@ class ProductMediaResponse(BaseModel):
     id: UUID
     product_id: UUID
     url: str
+    large_url: str | None = None
+    medium_url: str | None = None
+    thumbnail_url: str | None = None
+    original_filename: str | None = None
     alt_text: str | None
     sort_order: int
     is_primary: bool
     created_at: datetime
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

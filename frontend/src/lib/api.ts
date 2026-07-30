@@ -23,7 +23,14 @@ export async function apiRequest<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch {
+    throw new Error(
+      `Cannot reach API at ${API_URL}. Start the backend (uvicorn on port 8000) and try again.`,
+    );
+  }
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     const detail = payload?.detail;

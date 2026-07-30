@@ -19,7 +19,7 @@ import {
 } from "@/store/customersSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-type SortKey = "id" | "email" | "name" | "phone" | "status" | "created";
+type SortKey = "email" | "name" | "phone" | "status" | "created";
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -62,8 +62,6 @@ export function CustomersPanel() {
 
   const getSortValue = useCallback((row: AdminCustomer, key: SortKey) => {
     switch (key) {
-      case "id":
-        return row.id;
       case "email":
         return row.email;
       case "name":
@@ -149,13 +147,6 @@ export function CustomersPanel() {
           <thead className="table-head">
             <tr>
               <SortableTh
-                label="ID"
-                sortKey="id"
-                activeKey={table.sort.key}
-                direction={table.sort.direction}
-                onSort={table.toggleSort}
-              />
-              <SortableTh
                 label="Email"
                 sortKey="email"
                 activeKey={table.sort.key}
@@ -197,7 +188,7 @@ export function CustomersPanel() {
             {loading && items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={6}
                   className="px-4 py-8 text-center text-sm text-slate-500"
                 >
                   Loading customers…
@@ -206,7 +197,7 @@ export function CustomersPanel() {
             ) : table.pageRows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={6}
                   className="px-4 py-8 text-center text-sm text-slate-500"
                 >
                   No customers found.
@@ -215,7 +206,6 @@ export function CustomersPanel() {
             ) : (
               table.pageRows.map((row) => (
                 <tr key={row.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3.5 text-slate-500">#{row.id}</td>
                   <td className="px-4 py-3.5 font-medium">{row.email}</td>
                   <td className="px-4 py-3.5">{row.full_name}</td>
                   <td className="px-4 py-3.5 text-slate-600">

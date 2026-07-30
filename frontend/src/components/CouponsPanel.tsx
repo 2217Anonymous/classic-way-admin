@@ -28,7 +28,7 @@ import {
 } from "@/store/couponsSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-type SortKey = "id" | "code" | "name" | "value" | "status";
+type SortKey = "code" | "name" | "value" | "status";
 
 function toLocalInput(value: string | null | undefined) {
   if (!value) return "";
@@ -72,8 +72,6 @@ export function CouponsPanel() {
 
   const getSortValue = useCallback((row: Coupon, key: SortKey) => {
     switch (key) {
-      case "id":
-        return row.id;
       case "code":
         return row.code;
       case "name":
@@ -89,7 +87,7 @@ export function CouponsPanel() {
 
   const table = useTableState<Coupon, SortKey>({
     rows: filtered,
-    initialSort: { key: "id", direction: "desc" },
+    initialSort: { key: "code", direction: "asc" },
     getSortValue,
     matchesSearch,
   });
@@ -195,13 +193,6 @@ export function CouponsPanel() {
                   onChange={selection.togglePage}
                 />
                 <SortableTh
-                  label="ID"
-                  sortKey="id"
-                  activeKey={table.sort.key}
-                  direction={table.sort.direction}
-                  onSort={table.toggleSort}
-                />
-                <SortableTh
                   label="Code"
                   sortKey="code"
                   activeKey={table.sort.key}
@@ -237,7 +228,7 @@ export function CouponsPanel() {
               {loading && items.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     Loading coupons…
@@ -246,7 +237,7 @@ export function CouponsPanel() {
               ) : table.pageRows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     No coupons found.
@@ -260,7 +251,6 @@ export function CouponsPanel() {
                       onChange={() => selection.toggleOne(row.id)}
                       label={`Select ${row.code}`}
                     />
-                    <td className="px-4 py-3.5">#{row.id}</td>
                     <td className="px-4 py-3.5 font-medium">{row.code}</td>
                     <td className="px-4 py-3.5">{row.name}</td>
                     <td className="px-4 py-3.5">

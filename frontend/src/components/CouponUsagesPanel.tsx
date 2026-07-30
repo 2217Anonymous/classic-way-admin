@@ -23,7 +23,7 @@ type CouponUsage = {
   discount_amount: string | number | null;
 };
 
-type SortKey = "id" | "coupon_id" | "customer_id" | "used_at";
+type SortKey = "coupon_id" | "customer_id" | "used_at";
 
 export function CouponUsagesPanel() {
   const dispatch = useAppDispatch();
@@ -61,7 +61,7 @@ export function CouponUsagesPanel() {
   }, [token, dispatch]);
 
   const matchesSearch = useCallback((row: CouponUsage, query: string) => {
-    return [row.id, row.coupon_id, row.customer_id, row.order_id]
+    return [row.coupon_id, row.customer_id, row.order_id]
       .join(" ")
       .toLowerCase()
       .includes(query);
@@ -114,13 +114,6 @@ export function CouponUsagesPanel() {
           <thead className="table-head">
             <tr>
               <SortableTh
-                label="ID"
-                sortKey="id"
-                activeKey={table.sort.key}
-                direction={table.sort.direction}
-                onSort={table.toggleSort}
-              />
-              <SortableTh
                 label="Coupon"
                 sortKey="coupon_id"
                 activeKey={table.sort.key}
@@ -148,13 +141,13 @@ export function CouponUsagesPanel() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-5 py-8 text-center text-slate-500">
                   Loading…
                 </td>
               </tr>
             ) : table.pageRows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-5 py-8 text-center text-slate-500">
                   No coupon usages yet. They appear when shoppers apply coupons at
                   checkout.
                 </td>
@@ -162,7 +155,6 @@ export function CouponUsagesPanel() {
             ) : (
               table.pageRows.map((row) => (
                 <tr key={row.id} className="border-b border-slate-100">
-                  <td className="px-5 py-3">{row.id}</td>
                   <td className="px-5 py-3">#{row.coupon_id}</td>
                   <td className="px-5 py-3">#{row.customer_id}</td>
                   <td className="px-5 py-3">

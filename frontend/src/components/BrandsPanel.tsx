@@ -28,7 +28,7 @@ import {
 } from "@/store/brandsSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-type SortKey = "id" | "name" | "slug" | "status";
+type SortKey = "name" | "slug" | "status";
 
 function slugify(value: string) {
   return value
@@ -69,8 +69,6 @@ export function BrandsPanel() {
 
   const getSortValue = useCallback((row: Brand, key: SortKey) => {
     switch (key) {
-      case "id":
-        return row.id;
       case "name":
         return row.name;
       case "slug":
@@ -84,7 +82,7 @@ export function BrandsPanel() {
 
   const table = useTableState<Brand, SortKey>({
     rows: filtered,
-    initialSort: { key: "id", direction: "desc" },
+    initialSort: { key: "name", direction: "asc" },
     getSortValue,
     matchesSearch,
   });
@@ -190,13 +188,6 @@ export function BrandsPanel() {
                   onChange={selection.togglePage}
                 />
                 <SortableTh
-                  label="ID"
-                  sortKey="id"
-                  activeKey={table.sort.key}
-                  direction={table.sort.direction}
-                  onSort={table.toggleSort}
-                />
-                <SortableTh
                   label="Name"
                   sortKey="name"
                   activeKey={table.sort.key}
@@ -224,7 +215,7 @@ export function BrandsPanel() {
               {loading && items.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={5}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     Loading brands…
@@ -233,7 +224,7 @@ export function BrandsPanel() {
               ) : table.pageRows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={5}
                     className="px-4 py-8 text-center text-sm text-slate-500"
                   >
                     No brands found.
@@ -247,7 +238,6 @@ export function BrandsPanel() {
                       onChange={() => selection.toggleOne(row.id)}
                       label={`Select ${row.name}`}
                     />
-                    <td className="px-4 py-3.5">#{row.id}</td>
                     <td className="px-4 py-3.5 font-medium">{row.name}</td>
                     <td className="px-4 py-3.5 text-slate-600">{row.slug}</td>
                     <td className="px-4 py-3.5">

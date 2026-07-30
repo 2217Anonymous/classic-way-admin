@@ -629,7 +629,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
     primaryItem?.kind === "pending"
       ? primaryItem.url
       : primaryItem?.kind === "saved"
-        ? (mediaUrl(primaryItem.media.url) ?? "")
+        ? (mediaUrl(primaryItem.media.thumbnail_url || primaryItem.media.url) ?? "")
         : "";
 
   return (
@@ -735,9 +735,14 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   event.preventDefault();
                   const files = Array.from(event.dataTransfer.files ?? []).filter(
                     (file) =>
-                      ["image/jpeg", "image/png", "image/webp"].includes(
-                        file.type,
-                      ),
+                      [
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp",
+                        "image/gif",
+                        "image/avif",
+                      ].includes(file.type) ||
+                      /\.(jpe?g|png|webp|gif|avif)$/i.test(file.name),
                   );
                   if (files.length === 0) return;
                   setGalleryItems((current) => [
@@ -755,12 +760,14 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 <p className="text-sm font-semibold text-[var(--foreground)]">
                   Drop files here or click to upload.
                 </p>
-                <p className="text-xs">JPEG, PNG, or WebP up to 2MB each</p>
+                <p className="text-xs">
+                  JPEG, PNG, WebP, GIF, or AVIF up to 10MB each
+                </p>
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/avif,.jpg,.jpeg,.png,.webp,.gif,.avif"
                 multiple
                 className="hidden"
                 onChange={(event) => {
@@ -785,7 +792,11 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   const src =
                     item.kind === "pending"
                       ? item.url
-                      : (mediaUrl(item.media.url) ?? "");
+                      : (mediaUrl(
+                          item.media.thumbnail_url ||
+                            item.media.medium_url ||
+                            item.media.url,
+                        ) ?? "");
                   const isPrimary =
                     index === 0 ||
                     (item.kind === "saved" && item.media.is_primary);

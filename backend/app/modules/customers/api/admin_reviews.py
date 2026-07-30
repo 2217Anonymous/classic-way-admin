@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.modules.customers.repositories.customer_repository import CustomerRepository
 from app.modules.customers.repositories.engagement_repository import ReviewRepository
+from app.modules.catalog.repositories.product_repository import ProductRepository
 from app.modules.customers.schemas.engagement import ReviewResponse
 from app.modules.customers.services.admin_review_service import (
     AdminReviewService,
@@ -19,7 +20,11 @@ router = APIRouter(prefix="/admin/reviews", tags=["Admin Reviews"])
 
 
 def get_service(db: DbSession) -> AdminReviewService:
-    return AdminReviewService(ReviewRepository(db), CustomerRepository(db))
+    return AdminReviewService(
+        ReviewRepository(db),
+        CustomerRepository(db),
+        ProductRepository(db),
+    )
 
 
 @router.get("", response_model=list[ReviewResponse])

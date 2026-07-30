@@ -21,11 +21,11 @@ from app.modules.customers.schemas.commerce import (
 )
 from app.modules.customers.services.commerce_service import CommerceService
 from app.modules.fulfillment.repositories import ShipmentRepository
-from app.modules.inventory.repositories import InventoryItemRepository
+from app.modules.inventory.repositories.inventory_repository import InventoryItemRepository
 from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
 from app.modules.orders.repositories.order_repository import OrderRepository
-from app.modules.settings.repositories import CouponRepository
+from app.modules.settings.repositories.coupon_repository import CouponRepository
 
 coupons_router = APIRouter(prefix="/coupons", tags=["Coupons"])
 checkout_router = APIRouter(prefix="/checkout", tags=["Checkout"])

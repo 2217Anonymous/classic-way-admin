@@ -38,8 +38,8 @@ from app.modules.catalog.repositories.product_repository import (  # noqa: E402
 from app.modules.catalog.repositories.brand_repository import (  # noqa: E402
     BrandRepository,
 )
-from app.modules.settings.models import Coupon  # noqa: E402
-from app.modules.settings.repositories import CouponRepository  # noqa: E402
+from app.modules.settings.models.coupon import Coupon  # noqa: E402
+from app.modules.settings.repositories.coupon_repository import CouponRepository  # noqa: E402
 
 SIZES = ["S", "M", "L", "XL"]
 COLORS = ["Black", "White", "Navy", "Olive"]

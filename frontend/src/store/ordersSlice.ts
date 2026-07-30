@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import { apiRequest } from "@/lib/api";
+import { normalizeOrder } from "@/lib/mappers";
 import type {
   CreateOrderInput,
   Order,
@@ -23,12 +24,17 @@ const initialState: OrdersState = {
   lastCreated: null,
 };
 
+function mapOrder(raw: unknown): Order {
+  return normalizeOrder(raw as Record<string, unknown>);
+}
+
 export const fetchOrders = createAsyncThunk<
   Order[],
   void,
   { state: StateWithAuth }
 >("orders/fetch", async (_, { getState }) => {
-  return apiRequest<Order[]>("/orders", {}, getState().auth.token);
+  const rows = await apiRequest<unknown[]>("/orders", {}, getState().auth.token);
+  return rows.map(mapOrder);
 });
 
 export const fetchOrderByNumber = createAsyncThunk<
@@ -37,11 +43,12 @@ export const fetchOrderByNumber = createAsyncThunk<
   { state: StateWithAuth }
 >("orders/fetchByNumber", async (orderNumber, { getState }) => {
   const normalized = orderNumber.trim().toUpperCase();
-  return apiRequest<Order>(
+  const row = await apiRequest<unknown>(
     `/orders/by-number/${normalized}`,
     {},
     getState().auth.token,
   );
+  return mapOrder(row);
 });
 
 export const createOrder = createAsyncThunk<
@@ -49,23 +56,45 @@ export const createOrder = createAsyncThunk<
   CreateOrderInput,
   { state: StateWithAuth }
 >("orders/create", async (payload, { getState }) => {
-  return apiRequest<Order>(
+  const row = await apiRequest<unknown>(
     "/orders",
-    { method: "POST", body: JSON.stringify(payload) },
+    {
+      method: "POST",
+      body: JSON.stringify({
+        customer_id: payload.customer_id,
+        customer_name: payload.customer_name,
+        customer_email: payload.customer_email,
+        customer_phone: payload.customer_phone,
+        items: payload.items,
+        shipping_address: payload.shipping_address,
+        payment_method: payload.payment_method,
+        status: payload.status ?? "pending",
+        coupon_code: payload.coupon_code,
+        discount_amount: payload.discount_total ?? 0,
+        shipping_amount: payload.shipping_total,
+        tax_amount: payload.tax_total ?? 0,
+        notes: payload.notes,
+      }),
+    },
     getState().auth.token,
   );
+  return mapOrder(row);
 });
 
 export const updateOrderStatus = createAsyncThunk<
   Order,
-  { id: string; status: OrderStatus },
+  { id: string; status: OrderStatus; note?: string },
   { state: StateWithAuth }
->("orders/updateStatus", async ({ id, status }, { getState }) => {
-  return apiRequest<Order>(
+>("orders/updateStatus", async ({ id, status, note }, { getState }) => {
+  const row = await apiRequest<unknown>(
     `/orders/${id}/status`,
-    { method: "PATCH", body: JSON.stringify({ status }) },
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status, note: note || undefined }),
+    },
     getState().auth.token,
   );
+  return mapOrder(row);
 });
 
 export const markOrderPaid = createAsyncThunk<
@@ -73,11 +102,12 @@ export const markOrderPaid = createAsyncThunk<
   string,
   { state: StateWithAuth }
 >("orders/markPaid", async (id, { getState }) => {
-  return apiRequest<Order>(
+  const row = await apiRequest<unknown>(
     `/orders/${id}/mark-paid`,
     { method: "POST" },
     getState().auth.token,
   );
+  return mapOrder(row);
 });
 
 export const cancelOrder = createAsyncThunk<
@@ -85,11 +115,12 @@ export const cancelOrder = createAsyncThunk<
   { id: string; reason?: string },
   { state: StateWithAuth }
 >("orders/cancel", async ({ id, reason }, { getState }) => {
-  return apiRequest<Order>(
+  const row = await apiRequest<unknown>(
     `/orders/${id}/cancel`,
     { method: "POST", body: JSON.stringify({ reason }) },
     getState().auth.token,
   );
+  return mapOrder(row);
 });
 
 const ordersSlice = createSlice({

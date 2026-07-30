@@ -1,0 +1,30 @@
+name: classic-way-admin
+
+services:
+  backend:
+    container_name: classic-way-admin
+    image: classic-way-admin:latest
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_HOST: classic-way-db
+      POSTGRES_PORT: 5432
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - classic-way
+
+volumes:
+  uploads:
+    external: true
+    name: classic-way-shopping_uploads
+
+networks:
+  classic-way:
+    external: true
+    name: classic-way
