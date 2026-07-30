@@ -58,7 +58,24 @@ export const createOrder = createAsyncThunk<
 >("orders/create", async (payload, { getState }) => {
   const row = await apiRequest<unknown>(
     "/orders",
-    { method: "POST", body: JSON.stringify(payload) },
+    {
+      method: "POST",
+      body: JSON.stringify({
+        customer_id: payload.customer_id,
+        customer_name: payload.customer_name,
+        customer_email: payload.customer_email,
+        customer_phone: payload.customer_phone,
+        items: payload.items,
+        shipping_address: payload.shipping_address,
+        payment_method: payload.payment_method,
+        status: payload.status ?? "pending",
+        coupon_code: payload.coupon_code,
+        discount_amount: payload.discount_total ?? 0,
+        shipping_amount: payload.shipping_total,
+        tax_amount: payload.tax_total ?? 0,
+        notes: payload.notes,
+      }),
+    },
     getState().auth.token,
   );
   return mapOrder(row);

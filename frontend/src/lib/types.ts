@@ -527,6 +527,7 @@ export type Order = {
 };
 
 export type CreateOrderInput = {
+  customer_id?: string | null;
   customer_name: string;
   customer_email?: string | null;
   customer_phone?: string | null;
@@ -544,6 +545,7 @@ export type CreateOrderInput = {
   shipping_address: CustomerAddressInput;
   billing_address?: CustomerAddressInput | null;
   payment_method: PaymentMethod;
+  status?: "draft" | "pending" | "paid";
   coupon_code?: string | null;
   discount_total?: number;
   shipping_total?: number;

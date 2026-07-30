@@ -25,6 +25,31 @@ class CheckoutRequest(BaseModel):
     notes: str | None = Field(default=None, max_length=1000)
 
 
+class AdminOrderItemInput(BaseModel):
+    product_id: UUID
+    variant_id: UUID | None = None
+    product_name: str = Field(min_length=1, max_length=160)
+    sku: str | None = Field(default=None, max_length=64)
+    unit_price: Decimal = Field(ge=0)
+    quantity: int = Field(ge=1, le=1000)
+
+
+class AdminOrderCreateRequest(BaseModel):
+    customer_id: UUID | None = None
+    customer_name: str = Field(min_length=2, max_length=160)
+    customer_email: str | None = Field(default=None, max_length=255)
+    customer_phone: str | None = Field(default=None, max_length=40)
+    items: list[AdminOrderItemInput] = Field(min_length=1)
+    shipping_address: CheckoutAddressInput
+    payment_method: str = Field(pattern=r"^(razorpay|cod)$")
+    status: str = Field(default="pending", pattern=r"^(draft|pending|paid)$")
+    discount_amount: Decimal = Field(default=Decimal("0"), ge=0)
+    shipping_amount: Decimal | None = Field(default=None, ge=0)
+    tax_amount: Decimal = Field(default=Decimal("0"), ge=0)
+    coupon_code: str | None = Field(default=None, max_length=40)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
 class OrderItemResponse(BaseModel):
     id: UUID
     order_id: UUID

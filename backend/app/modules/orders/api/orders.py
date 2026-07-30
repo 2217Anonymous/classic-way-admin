@@ -13,6 +13,7 @@ from app.modules.orders.repositories.address_repository import AddressRepository
 from app.modules.orders.repositories.cart_repository import CartRepository
 from app.modules.orders.repositories.order_repository import OrderRepository
 from app.modules.orders.schemas.order import (
+    AdminOrderCreateRequest,
     CheckoutRequest,
     OrderCancelRequest,
     OrderResponse,
@@ -38,6 +39,13 @@ def get_service(db: DbSession) -> OrderService:
 @router.post("/checkout", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 def checkout(payload: CheckoutRequest, db: DbSession) -> OrderResponse:
     return get_service(db).checkout(payload)
+
+
+@router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
+def create_order(
+    payload: AdminOrderCreateRequest, db: DbSession, _: AdminUser
+) -> OrderResponse:
+    return get_service(db).create_admin_order(payload)
 
 
 @router.get("", response_model=list[OrderResponse])
